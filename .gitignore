@@ -1,0 +1,81 @@
+# Binaries and executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+*.test
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Build output
+bin/
+dist/
+build/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local development configuration
+config/local.*
+
+# Debug files
+debug/
+
+# Test output
+coverage.out
+coverage.html
+
+# Project specific
+config.yaml
+
+# Go build cache
+/.cache/
+
+# IDE specific
+.idea_modules/
+*.iml
+*.iws
+*.ipr
+
+# Local development environment
+.venv/
+venv/
+ENV/
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

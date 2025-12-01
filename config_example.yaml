@@ -1,0 +1,37 @@
+server:
+  port: 
+  cors:
+    allowed_origins: []
+  log_level: 
+
+db:
+  mysql:
+    host: 
+    port: 
+    username: 
+    password: 
+    db_name: 
+
+jwt:
+  secret_key: 
+
+mcp:
+  host: 
+  port: 
+
+oss:
+  region: 
+  bucket_name: 
+  access_key_id: 
+  access_key_secret: 
+  role_arn: 
+
+mq:
+  name_server: []
+
+model:
+  api_key: 
+
+milvus:
+  endpoint: 
+  api_key: 

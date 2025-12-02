@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"diabetes-agent-backend/config"
+	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/chat"
+	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/milvus-io/milvus/client/v2/column"
@@ -106,7 +107,14 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 		return fmt.Errorf("error embedding documents: %v", err)
 	}
 
-	columns := generateColumns(texts, vectors, objectName)
+	// 组装列数据，包括文档切片、向量和元数据
+	columns := make([]column.Column, 0)
+	columns = append(columns, column.NewColumnVarChar("text", texts))
+	columns = append(columns, column.NewColumnFloatVector("vector", vectorDim, vectors))
+	columns = addMetadataColumns(columns, len(texts), &Metadata{
+		objectName: objectName,
+	})
+
 	insertOption := client.NewColumnBasedInsertOption(DefaultCollectionName).WithColumns(columns...)
 
 	// 加载数据到milvus
@@ -115,26 +123,11 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 		return fmt.Errorf("error inserting document chunks: %v", err)
 	}
 
-	return nil
-}
-
-func generateColumns(texts []string, vectors [][]float32, objectName string) []column.Column {
-	pathSegments := strings.Split(objectName, "/")
-	userEmail := pathSegments[0]
-	title := pathSegments[len(pathSegments)-1]
-
-	titles := make([]string, len(texts))
-	userEmails := make([]string, len(texts))
-	for i := range texts {
-		titles[i] = title
-		userEmails[i] = userEmail
+	// 更新知识文件状态
+	err = knowledgebase.UpdateKnowledgeMetadataStatus(objectName, model.StatusProcessed)
+	if err != nil {
+		return err
 	}
 
-	columns := make([]column.Column, 0)
-	columns = append(columns, column.NewColumnVarChar("text", texts))
-	columns = append(columns, column.NewColumnFloatVector("vector", vectorDim, vectors))
-	columns = append(columns, column.NewColumnVarChar("title", titles))
-	columns = append(columns, column.NewColumnVarChar("user_email", userEmails))
-
-	return columns
+	return nil
 }

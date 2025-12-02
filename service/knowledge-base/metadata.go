@@ -2,8 +2,11 @@ package knowledgebase
 
 import (
 	"diabetes-agent-backend/dao"
+	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/request"
 	"fmt"
+	"log/slog"
+	"strings"
 )
 
 func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email string) error {
@@ -19,6 +22,20 @@ func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email s
 	err = dao.SaveKnowledgeMetadata(req, email)
 	if err != nil {
 		return fmt.Errorf("failed to save knowledge metadata: %v", err)
+	}
+
+	return nil
+}
+
+func UpdateKnowledgeMetadataStatus(objectName string, status model.Status) error {
+	pathSegments := strings.Split(objectName, "/")
+	userEmail := pathSegments[0]
+	fileName := pathSegments[1]
+
+	err := dao.UpdateKnowledgeMetadataStatus(userEmail, fileName, status)
+	if err != nil {
+		slog.Error("failed to update knowledge metadata", "err", err)
+		return err
 	}
 
 	return nil

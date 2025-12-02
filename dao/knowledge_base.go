@@ -42,3 +42,9 @@ func GetKnowledgeMetadataByEmailAndFileName(email, fileName string) (*model.Know
 func DeleteKnowledgeMetadataByEmailAndFileName(email, fileName string) error {
 	return DB.Where("user_email = ? AND file_name = ?", email, fileName).Delete(&model.KnowledgeMetadata{}).Error
 }
+
+func UpdateKnowledgeMetadataStatus(email, fileName string, status model.Status) error {
+	return DB.Model(&model.KnowledgeMetadata{}).
+		Where("user_email = ? AND file_name = ?", email, fileName).
+		Update("status", status).Error
+}

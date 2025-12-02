@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
@@ -51,6 +52,7 @@ func HandleETLMessage(ctx context.Context, msg *primitive.MessageExt) error {
 			if err := processor.ExecuteETLPipeline(ctx, object, etlMessage.ObjectName); err != nil {
 				return fmt.Errorf("failed to execute ETL pipeline: %v", err)
 			}
+			slog.Info("ETL pipeline executed successfully", "msg_id", msg.MsgId)
 			return nil
 		}
 	}

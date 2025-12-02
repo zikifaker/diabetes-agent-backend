@@ -114,8 +114,6 @@ func registerHandler(consumer rocketmq.PushConsumer, topic string, tag string, h
 					"error", err)
 				return c.ConsumeRetryLater, err
 			}
-
-			// TODO: 消息消费成功，更新文档处理状态
 		}
 		return c.ConsumeSuccess, nil
 	})
@@ -154,7 +152,6 @@ func SendMessage(ctx context.Context, message *Message) error {
 		}),
 	)
 	if err != nil {
-		// TODO: 消息发送失败，更新文档处理状态
 		return fmt.Errorf("failed to send message to topic %s after retries: %v", msg.Topic, err)
 	}
 

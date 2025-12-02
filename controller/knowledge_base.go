@@ -100,5 +100,7 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 		return
 	}
 
+	// TODO: 发送删除消息到MQ
+
 	c.JSON(http.StatusOK, response.Response{})
 }

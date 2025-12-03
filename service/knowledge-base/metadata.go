@@ -29,8 +29,12 @@ func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email s
 
 func UpdateKnowledgeMetadataStatus(objectName string, status model.Status) error {
 	pathSegments := strings.Split(objectName, "/")
+	if len(pathSegments) < 2 {
+		return fmt.Errorf("invalid object name: %s", objectName)
+	}
+
 	userEmail := pathSegments[0]
-	fileName := pathSegments[1]
+	fileName := pathSegments[len(pathSegments)-1]
 
 	err := dao.UpdateKnowledgeMetadataStatus(userEmail, fileName, status)
 	if err != nil {

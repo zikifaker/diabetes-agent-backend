@@ -19,6 +19,7 @@ import (
 const (
 	TopicKnowledgeBase = "topic_knowledge_base"
 	TagETL             = "tag_etl"
+	TagDelete          = "tag_delete"
 
 	consumeGroupKnowledgeBase = "cg_knowledge_base"
 
@@ -73,8 +74,11 @@ func init() {
 
 func Run() error {
 	// 注册消息处理器
-	if err := registerHandler(consumerKnowledgeBase, TopicKnowledgeBase, TagETL, etl.HandleETLMessage); err != nil {
-		return fmt.Errorf("failed to register handler, topic: %s, tag: %s, err: %v", TopicKnowledgeBase, TagETL, err)
+	// if err := registerHandler(consumerKnowledgeBase, TopicKnowledgeBase, TagETL, etl.HandleETLMessage); err != nil {
+	// 	return fmt.Errorf("failed to register handler, topic: %s, tag: %s, err: %v", TopicKnowledgeBase, TagETL, err)
+	// }
+	if err := registerHandler(consumerKnowledgeBase, TopicKnowledgeBase, TagDelete, etl.HandleDeleteMessage); err != nil {
+		return fmt.Errorf("failed to register handler, topic: %s, tag: %s, err: %v", TopicKnowledgeBase, TagDelete, err)
 	}
 
 	if err := producerInstance.Start(); err != nil {

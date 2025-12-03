@@ -105,7 +105,7 @@ func main() {
 	}
 
 	createCollectionRequest := &CreateCollectionRequest{
-		CollectionName: processor.DefaultCollectionName,
+		CollectionName: processor.CollectionName,
 		Schema: &Schema{
 			AutoID:             true,
 			EnableDynamicField: false,

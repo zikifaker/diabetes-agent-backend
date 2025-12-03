@@ -8,7 +8,9 @@ import (
 	"diabetes-agent-backend/service/chat"
 	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/milvus-io/milvus/client/v2/column"
@@ -27,7 +29,7 @@ const (
 	embeddingBatchSize = 10
 	vectorDim          = 1024
 
-	DefaultCollectionName = "knowledge_doc"
+	CollectionName = "knowledge_doc"
 )
 
 type PDFETLProcessor struct {
@@ -101,21 +103,29 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 		texts = append(texts, doc.PageContent)
 	}
 
+	slog.Debug("doc chunk", "texts_num", len(texts))
+
 	// 生成文档切片的向量
 	vectors, err := p.Embedder.EmbedDocuments(ctx, texts)
 	if err != nil {
 		return fmt.Errorf("error embedding documents: %v", err)
 	}
 
+	slog.Debug("embeded documents successfully", "vectors_num", len(vectors))
+
 	// 组装列数据，包括文档切片、向量和元数据
 	columns := make([]column.Column, 0)
 	columns = append(columns, column.NewColumnVarChar("text", texts))
 	columns = append(columns, column.NewColumnFloatVector("vector", vectorDim, vectors))
-	columns = addMetadataColumns(columns, len(texts), &Metadata{
+
+	columns, err = addMetadataColumns(columns, len(texts), &Metadata{
 		objectName: objectName,
 	})
+	if err != nil {
+		return fmt.Errorf("error adding metadata columns: %v", err)
+	}
 
-	insertOption := client.NewColumnBasedInsertOption(DefaultCollectionName).WithColumns(columns...)
+	insertOption := client.NewColumnBasedInsertOption(CollectionName).WithColumns(columns...)
 
 	// 加载数据到milvus
 	_, err = p.MilvusClient.Insert(ctx, insertOption)
@@ -127,6 +137,26 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 	err = knowledgebase.UpdateKnowledgeMetadataStatus(objectName, model.StatusProcessed)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (p *PDFETLProcessor) DeleteVectorStore(ctx context.Context, objectName string) error {
+	pathSegments := strings.Split(objectName, "/")
+	if len(pathSegments) < 2 {
+		return fmt.Errorf("invalid object name: %s", objectName)
+	}
+
+	userEmail := pathSegments[0]
+	fileName := pathSegments[len(pathSegments)-1]
+
+	expression := fmt.Sprintf("user_email == '%s' and title == '%s'", userEmail, fileName)
+	deleteOption := milvusclient.NewDeleteOption(CollectionName).WithExpr(expression)
+
+	_, err := p.MilvusClient.Delete(ctx, deleteOption)
+	if err != nil {
+		return fmt.Errorf("error deleting document chunks: %v", err)
 	}
 
 	return nil

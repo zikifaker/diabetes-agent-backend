@@ -9,6 +9,8 @@ import (
 	"diabetes-agent-backend/service/mq"
 	"log/slog"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -55,7 +57,7 @@ func GetKnowledgeMetadata(c *gin.Context) {
 }
 
 // UploadKnowledgeMetadata 在前端将文件成功传输到OSS后调用
-// 存储知识元数据，向MQ发送向量化任务
+// 存储知识文件元数据，向MQ发送向量化任务
 func UploadKnowledgeMetadata(c *gin.Context) {
 	var req request.UploadKnowledgeMetadataRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -88,6 +90,7 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 	c.JSON(http.StatusOK, response.Response{})
 }
 
+// DeleteKnowledgeMetadata 删除知识文件元数据和OSS上的文件，向MQ发送删除任务
 func DeleteKnowledgeMetadata(c *gin.Context) {
 	email := c.GetString("email")
 	fileName := c.Query("file-name")
@@ -100,7 +103,18 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 		return
 	}
 
-	// TODO: 发送删除消息到MQ
+	// 获取文件扩展名（包含.）
+	extension := filepath.Ext(fileName)
+	fileType := strings.TrimPrefix(extension, ".")
+
+	mq.SendMessage(c.Request.Context(), &mq.Message{
+		Topic: mq.TopicKnowledgeBase,
+		Tag:   mq.TagDelete,
+		Payload: etl.DeleteMessage{
+			FileType:   fileType,
+			ObjectName: email + "/" + fileName,
+		},
+	})
 
 	c.JSON(http.StatusOK, response.Response{})
 }

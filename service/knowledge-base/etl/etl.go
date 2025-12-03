@@ -20,7 +20,7 @@ var (
 	// 知识文件ETL处理器注册表
 	etlProcessorRegistry []processor.ETLProcessor
 
-	// 全局HTTP客户端，可以在访问OSS时复用
+	// 全局HTTP客户端，访问OSS时复用
 	httpClient *http.Client
 )
 

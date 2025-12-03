@@ -2,10 +2,28 @@ package processor
 
 import (
 	"context"
+	"diabetes-agent-backend/config"
+	"diabetes-agent-backend/service/chat"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/milvus-io/milvus/client/v2/column"
+	"github.com/milvus-io/milvus/client/v2/milvusclient"
+	"github.com/tmc/langchaingo/embeddings"
+	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/tmc/langchaingo/textsplitter"
+)
+
+const (
+	embeddingModelName = "text-embedding-v4"
+	chunkSize          = 4000
+	chunkOverlap       = 200
+	embeddingBatchSize = 10
+	vectorDim          = 1024
+
+	CollectionName = "knowledge_doc"
 )
 
 // ETLProcessor 知识文件ETL处理器
@@ -18,6 +36,49 @@ type ETLProcessor interface {
 
 	// 删除向量存储
 	DeleteVectorStore(ctx context.Context, objectName string) error
+}
+
+type BaseETLProcessor struct {
+	TextSplitter textsplitter.TextSplitter
+	Embedder     embeddings.Embedder
+	MilvusClient *milvusclient.Client
+}
+
+func NewBaseETLProcessor(textSplitter textsplitter.TextSplitter) (*BaseETLProcessor, error) {
+	client, err := openai.New(
+		openai.WithEmbeddingModel(embeddingModelName),
+		openai.WithToken(config.Cfg.Model.APIKey),
+		openai.WithBaseURL(chat.BaseURL),
+		openai.WithHTTPClient(&http.Client{
+			Timeout: 60 * time.Second,
+		}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create embedder client: %v", err)
+	}
+
+	embedder, err := embeddings.NewEmbedder(client,
+		embeddings.WithBatchSize(embeddingBatchSize),
+		embeddings.WithStripNewLines(false),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create embedder: %v", err)
+	}
+
+	milvusConfig := milvusclient.ClientConfig{
+		Address: config.Cfg.Milvus.Endpoint,
+		APIKey:  config.Cfg.Milvus.APIKey,
+	}
+
+	milvusClient, err := milvusclient.New(context.Background(), &milvusConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create milvus client: %v", err)
+	}
+	return &BaseETLProcessor{
+		TextSplitter: textSplitter,
+		Embedder:     embedder,
+		MilvusClient: milvusClient,
+	}, nil
 }
 
 type Metadata struct {

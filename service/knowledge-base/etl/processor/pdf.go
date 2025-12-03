@@ -3,84 +3,40 @@ package processor
 import (
 	"bytes"
 	"context"
-	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/service/chat"
 	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"strings"
-	"time"
 
 	"github.com/milvus-io/milvus/client/v2/column"
 	"github.com/milvus-io/milvus/client/v2/milvusclient"
 	client "github.com/milvus-io/milvus/client/v2/milvusclient"
 	"github.com/tmc/langchaingo/documentloaders"
-	"github.com/tmc/langchaingo/embeddings"
-	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/textsplitter"
 )
 
-const (
-	embeddingModelName = "text-embedding-v4"
-	chunkSize          = 4000
-	chunkOverlap       = 200
-	embeddingBatchSize = 10
-	vectorDim          = 1024
-
-	CollectionName = "knowledge_doc"
-)
-
 type PDFETLProcessor struct {
-	TextSplitter textsplitter.TextSplitter
-	Embedder     embeddings.Embedder
-	MilvusClient *milvusclient.Client
+	BaseETLProcessor
 }
 
 var _ ETLProcessor = &PDFETLProcessor{}
 
 func NewPDFETLProcessor() (*PDFETLProcessor, error) {
+	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " ", ""}
 	textSplitter := textsplitter.NewRecursiveCharacter(
-		textsplitter.WithSeparators([]string{"\n\n", "\n", "。", "！", "？", "；", "，", " "}),
+		textsplitter.WithSeparators(separators),
 		textsplitter.WithChunkSize(chunkSize),
 		textsplitter.WithChunkOverlap(chunkOverlap),
 	)
 
-	client, err := openai.New(
-		openai.WithEmbeddingModel(embeddingModelName),
-		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(chat.BaseURL),
-		openai.WithHTTPClient(&http.Client{
-			Timeout: 60 * time.Second,
-		}),
-	)
+	baseETLProcessor, err := NewBaseETLProcessor(textSplitter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create embedder client: %v", err)
-	}
-
-	embedder, err := embeddings.NewEmbedder(client,
-		embeddings.WithBatchSize(embeddingBatchSize),
-		embeddings.WithStripNewLines(false),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create embedder: %v", err)
-	}
-
-	milvusConfig := milvusclient.ClientConfig{
-		Address: config.Cfg.Milvus.Endpoint,
-		APIKey:  config.Cfg.Milvus.APIKey,
-	}
-
-	milvusClient, err := milvusclient.New(context.Background(), &milvusConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create milvus client: %v", err)
+		return nil, fmt.Errorf("error creating BaseETLProcessor: %v", err)
 	}
 
 	return &PDFETLProcessor{
-		TextSplitter: textSplitter,
-		Embedder:     embedder,
-		MilvusClient: milvusClient,
+		BaseETLProcessor: *baseETLProcessor,
 	}, nil
 }
 

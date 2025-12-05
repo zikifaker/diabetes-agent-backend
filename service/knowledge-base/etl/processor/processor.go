@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 	"diabetes-agent-backend/config"
+	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/chat"
 	"fmt"
 	"net/http"
@@ -29,7 +30,7 @@ const (
 // ETLProcessor 知识文件ETL处理器
 type ETLProcessor interface {
 	// 判断是否支持传入的文件类型
-	CanProcess(fileType string) bool
+	CanProcess(fileType model.FileType) bool
 
 	// 执行ETL流程
 	ExecuteETLPipeline(ctx context.Context, object []byte, objectName string) error
@@ -38,11 +39,14 @@ type ETLProcessor interface {
 	DeleteVectorStore(ctx context.Context, objectName string) error
 }
 
+// BaseETLProcessor 基础ETL处理器，提供删除向量存储的默认实现
 type BaseETLProcessor struct {
 	TextSplitter textsplitter.TextSplitter
 	Embedder     embeddings.Embedder
 	MilvusClient *milvusclient.Client
 }
+
+var _ ETLProcessor = &BaseETLProcessor{}
 
 func NewBaseETLProcessor(textSplitter textsplitter.TextSplitter) (*BaseETLProcessor, error) {
 	client, err := openai.New(
@@ -79,6 +83,34 @@ func NewBaseETLProcessor(textSplitter textsplitter.TextSplitter) (*BaseETLProces
 		Embedder:     embedder,
 		MilvusClient: milvusClient,
 	}, nil
+}
+
+func (p *BaseETLProcessor) CanProcess(fileType model.FileType) bool {
+	return false
+}
+
+func (p *BaseETLProcessor) ExecuteETLPipeline(ctx context.Context, object []byte, objectName string) error {
+	return nil
+}
+
+func (p *BaseETLProcessor) DeleteVectorStore(ctx context.Context, objectName string) error {
+	pathSegments := strings.Split(objectName, "/")
+	if len(pathSegments) < 2 {
+		return fmt.Errorf("invalid object name: %s", objectName)
+	}
+
+	userEmail := pathSegments[0]
+	fileName := pathSegments[len(pathSegments)-1]
+
+	expression := fmt.Sprintf("user_email == '%s' and title == '%s'", userEmail, fileName)
+	deleteOption := milvusclient.NewDeleteOption(CollectionName).WithExpr(expression)
+
+	_, err := p.MilvusClient.Delete(ctx, deleteOption)
+	if err != nil {
+		return fmt.Errorf("error deleting pdf chunks: %v", err)
+	}
+
+	return nil
 }
 
 type Metadata struct {

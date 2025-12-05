@@ -2,6 +2,7 @@ package controller
 
 import (
 	"diabetes-agent-backend/dao"
+	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/response"
 	knowledgebase "diabetes-agent-backend/service/knowledge-base"
@@ -82,7 +83,7 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 		Topic: mq.TopicKnowledgeBase,
 		Tag:   mq.TagETL,
 		Payload: etl.ETLMessage{
-			FileType:   req.FileType,
+			FileType:   model.FileType(req.FileType),
 			ObjectName: req.ObjectName,
 		},
 	})
@@ -111,7 +112,7 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 		Topic: mq.TopicKnowledgeBase,
 		Tag:   mq.TagDelete,
 		Payload: etl.DeleteMessage{
-			FileType:   fileType,
+			FileType:   model.FileType(fileType),
 			ObjectName: email + "/" + fileName,
 		},
 	})

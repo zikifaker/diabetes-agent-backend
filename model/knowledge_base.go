@@ -5,9 +5,9 @@ import "time"
 type FileType string
 
 const (
-	FileTypePdf FileType = "pdf"
-	FileTypeMd  FileType = "md"
-	FileTypeTxt FileType = "txt"
+	FileTypePDF      FileType = "pdf"
+	FileTypeMarkdown FileType = "md"
+	FileTypeText     FileType = "txt"
 )
 
 type Status string

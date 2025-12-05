@@ -7,10 +7,8 @@ import (
 	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/milvus-io/milvus/client/v2/column"
-	"github.com/milvus-io/milvus/client/v2/milvusclient"
 	client "github.com/milvus-io/milvus/client/v2/milvusclient"
 	"github.com/tmc/langchaingo/documentloaders"
 	"github.com/tmc/langchaingo/textsplitter"
@@ -23,7 +21,7 @@ type PDFETLProcessor struct {
 var _ ETLProcessor = &PDFETLProcessor{}
 
 func NewPDFETLProcessor() (*PDFETLProcessor, error) {
-	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " ", ""}
+	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " "}
 	textSplitter := textsplitter.NewRecursiveCharacter(
 		textsplitter.WithSeparators(separators),
 		textsplitter.WithChunkSize(chunkSize),
@@ -40,8 +38,8 @@ func NewPDFETLProcessor() (*PDFETLProcessor, error) {
 	}, nil
 }
 
-func (p *PDFETLProcessor) CanProcess(fileType string) bool {
-	return fileType == "pdf"
+func (p *PDFETLProcessor) CanProcess(fileType model.FileType) bool {
+	return fileType == model.FileTypePDF
 }
 
 func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, objectName string) error {
@@ -59,15 +57,15 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 		texts = append(texts, doc.PageContent)
 	}
 
-	slog.Debug("split documents successfully", "texts_num", len(texts))
+	slog.Debug("split pdf successfully", "texts_num", len(texts))
 
 	// 生成文档切片的向量
 	vectors, err := p.Embedder.EmbedDocuments(ctx, texts)
 	if err != nil {
-		return fmt.Errorf("error embedding documents: %v", err)
+		return fmt.Errorf("error embedding pdf: %v", err)
 	}
 
-	slog.Debug("embedded documents successfully", "vectors_num", len(vectors))
+	slog.Debug("embedded pdf successfully", "vectors_num", len(vectors))
 
 	// 组装列数据，包括文档切片、向量和元数据
 	columns := make([]column.Column, 0)
@@ -86,33 +84,13 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 	// 加载数据到milvus
 	_, err = p.MilvusClient.Insert(ctx, insertOption)
 	if err != nil {
-		return fmt.Errorf("error inserting document chunks: %v", err)
+		return fmt.Errorf("error inserting pdf chunks: %v", err)
 	}
 
 	// 更新知识文件状态
 	err = knowledgebase.UpdateKnowledgeMetadataStatus(objectName, model.StatusProcessed)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (p *PDFETLProcessor) DeleteVectorStore(ctx context.Context, objectName string) error {
-	pathSegments := strings.Split(objectName, "/")
-	if len(pathSegments) < 2 {
-		return fmt.Errorf("invalid object name: %s", objectName)
-	}
-
-	userEmail := pathSegments[0]
-	fileName := pathSegments[len(pathSegments)-1]
-
-	expression := fmt.Sprintf("user_email == '%s' and title == '%s'", userEmail, fileName)
-	deleteOption := milvusclient.NewDeleteOption(CollectionName).WithExpr(expression)
-
-	_, err := p.MilvusClient.Delete(ctx, deleteOption)
-	if err != nil {
-		return fmt.Errorf("error deleting document chunks: %v", err)
 	}
 
 	return nil

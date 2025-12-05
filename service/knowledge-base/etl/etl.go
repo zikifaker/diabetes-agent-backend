@@ -3,6 +3,7 @@ package etl
 import (
 	"context"
 	"diabetes-agent-backend/config"
+	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/knowledge-base/etl/processor"
 	"encoding/json"
 	"fmt"
@@ -25,13 +26,13 @@ var (
 )
 
 type ETLMessage struct {
-	FileType   string `json:"file_type"`
-	ObjectName string `json:"object_name"`
+	FileType   model.FileType `json:"file_type"`
+	ObjectName string         `json:"object_name"`
 }
 
 type DeleteMessage struct {
-	FileType   string `json:"file_type"`
-	ObjectName string `json:"object_name"`
+	FileType   model.FileType `json:"file_type"`
+	ObjectName string         `json:"object_name"`
 }
 
 func init() {

@@ -41,8 +41,14 @@ func init() {
 		panic(fmt.Sprintf("error creating PDFETLProcessor: %v", err))
 	}
 
+	markdownProcessor, err := processor.NewMarkdownETLProcessor()
+	if err != nil {
+		panic(fmt.Sprintf("error creating MarkdownETLProcessor: %v", err))
+	}
+
 	etlProcessorRegistry = []processor.ETLProcessor{
 		pdfProcessor,
+		markdownProcessor,
 	}
 
 	httpClient = &http.Client{

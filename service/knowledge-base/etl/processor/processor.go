@@ -20,7 +20,7 @@ import (
 const (
 	embeddingModelName = "text-embedding-v4"
 	chunkSize          = 4000
-	chunkOverlap       = 200
+	chunkOverlap       = 400
 	embeddingBatchSize = 10
 	vectorDim          = 1024
 
@@ -107,7 +107,7 @@ func (p *BaseETLProcessor) DeleteVectorStore(ctx context.Context, objectName str
 
 	_, err := p.MilvusClient.Delete(ctx, deleteOption)
 	if err != nil {
-		return fmt.Errorf("error deleting pdf chunks: %v", err)
+		return fmt.Errorf("error deleting document chunks: %v", err)
 	}
 
 	return nil

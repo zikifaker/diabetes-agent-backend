@@ -42,10 +42,7 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 		return nil, fmt.Errorf("failed to create LLM: %v", err)
 	}
 
-	mcpServerPath := fmt.Sprintf("http://%s:%s/mcp", config.Cfg.MCP.Host, config.Cfg.MCP.Port)
-	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath,
-		transport.WithHTTPBasicClient(httpClient),
-	)
+	mcpClient, err := createMCPClient(c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create MCP client: %v", err)
 	}
@@ -109,6 +106,20 @@ func (a *Agent) Close() error {
 		return a.MCPClient.Close()
 	}
 	return nil
+}
+
+func createMCPClient(c *gin.Context) (*client.Client, error) {
+	mcpServerPath := fmt.Sprintf("http://%s:%s/mcp", config.Cfg.MCP.Host, config.Cfg.MCP.Port)
+	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath,
+		transport.WithHTTPBasicClient(httpClient),
+		transport.WithHTTPHeaders(map[string]string{
+			"Authorization": c.GetHeader("Authorization"),
+		}),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return mcpClient, nil
 }
 
 // getMCPTools 返回用户选择的工具

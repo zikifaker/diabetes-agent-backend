@@ -43,6 +43,8 @@ type Config struct {
 	Milvus struct {
 		Endpoint string `yaml:"endpoint"`
 		APIKey   string `yaml:"api_key"`
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
 	} `yaml:"milvus"`
 }
 

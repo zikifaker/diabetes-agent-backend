@@ -5,12 +5,12 @@ import (
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/knowledge-base/etl/processor"
+	"diabetes-agent-backend/utils"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
@@ -22,7 +22,7 @@ var (
 	etlProcessorRegistry []processor.ETLProcessor
 
 	// 全局HTTP客户端，访问OSS时复用
-	httpClient *http.Client
+	httpClient *http.Client = utils.DefaultHTTPClient()
 )
 
 type ETLMessage struct {
@@ -49,16 +49,6 @@ func init() {
 	etlProcessorRegistry = []processor.ETLProcessor{
 		pdfProcessor,
 		markdownProcessor,
-	}
-
-	httpClient = &http.Client{
-		Timeout: 30 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 10,
-			IdleConnTimeout:     90 * time.Second,
-			TLSHandshakeTimeout: 10 * time.Second,
-		},
 	}
 }
 

@@ -7,12 +7,11 @@ import (
 	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/chat"
+	"diabetes-agent-backend/utils"
 	_ "embed"
 	"fmt"
 	"html/template"
 	"log/slog"
-	"net/http"
-	"time"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -56,15 +55,7 @@ func init() {
 }
 
 func newSummarizer() (*Summarizer, error) {
-	httpClient := &http.Client{
-		Timeout: 60 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 10,
-			IdleConnTimeout:     90 * time.Second,
-			TLSHandshakeTimeout: 10 * time.Second,
-		},
-	}
+	httpClient := utils.DefaultHTTPClient()
 	llm, err := openai.New(
 		openai.WithModel(modelName),
 		openai.WithToken(config.Cfg.Model.APIKey),

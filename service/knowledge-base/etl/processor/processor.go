@@ -5,10 +5,9 @@ import (
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/chat"
+	"diabetes-agent-backend/utils"
 	"fmt"
-	"net/http"
 	"strings"
-	"time"
 
 	"github.com/milvus-io/milvus/client/v2/column"
 	"github.com/milvus-io/milvus/client/v2/milvusclient"
@@ -53,9 +52,7 @@ func NewBaseETLProcessor(textSplitter textsplitter.TextSplitter) (*BaseETLProces
 		openai.WithEmbeddingModel(embeddingModelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(chat.BaseURL),
-		openai.WithHTTPClient(&http.Client{
-			Timeout: 60 * time.Second,
-		}),
+		openai.WithHTTPClient(utils.DefaultHTTPClient()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create embedder client: %v", err)

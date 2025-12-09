@@ -4,14 +4,15 @@ import (
 	"context"
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/request"
+	"diabetes-agent-backend/utils"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	mcpadapter "github.com/i2y/langchaingo-mcp-adapter"
 	"github.com/mark3labs/mcp-go/client"
+	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -21,6 +22,8 @@ import (
 
 const BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
+var httpClient *http.Client = utils.DefaultHTTPClient()
+
 type Agent struct {
 	Executor    *agents.Executor
 	MCPClient   *client.Client
@@ -29,21 +32,20 @@ type Agent struct {
 }
 
 func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
-	// LLM客户端60s超时
 	llm, err := openai.New(
 		openai.WithModel(req.AgentConfig.Model),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(BaseURL),
-		openai.WithHTTPClient(&http.Client{
-			Timeout: 60 * time.Second,
-		}),
+		openai.WithHTTPClient(httpClient),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LLM: %v", err)
 	}
 
 	mcpServerPath := fmt.Sprintf("http://%s:%s/mcp", config.Cfg.MCP.Host, config.Cfg.MCP.Port)
-	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath)
+	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath,
+		transport.WithHTTPBasicClient(httpClient),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create MCP client: %v", err)
 	}

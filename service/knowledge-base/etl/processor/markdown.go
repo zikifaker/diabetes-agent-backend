@@ -25,7 +25,7 @@ type MarkdownETLProcessor struct {
 var _ ETLProcessor = &MarkdownETLProcessor{}
 
 func NewMarkdownETLProcessor() (*MarkdownETLProcessor, error) {
-	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " "}
+	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " ", ""}
 	textSplitter := textsplitter.NewMarkdownTextSplitter(
 		textsplitter.WithChunkSize(chunkSize),
 		textsplitter.WithChunkOverlap(chunkOverlap),
@@ -71,14 +71,14 @@ func (p *MarkdownETLProcessor) ExecuteETLPipeline(ctx context.Context, object []
 		texts = append(texts, doc.PageContent)
 	}
 
-	slog.Debug("split markdown successfully", "texts_num", len(texts))
+	slog.Debug("split markdown successfully", "object_name", objectName, "texts_num", len(texts))
 
 	vectors, err := p.Embedder.EmbedDocuments(ctx, texts)
 	if err != nil {
 		return fmt.Errorf("error embedding markdown: %v", err)
 	}
 
-	slog.Debug("embedded markdown successfully", "vectors_num", len(vectors))
+	slog.Debug("embedded markdown successfully", "object_name", objectName, "vectors_num", len(vectors))
 
 	columns := make([]column.Column, 0)
 	columns = append(columns, column.NewColumnVarChar("text", texts))

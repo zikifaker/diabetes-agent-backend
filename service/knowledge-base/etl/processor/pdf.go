@@ -21,7 +21,7 @@ type PDFETLProcessor struct {
 var _ ETLProcessor = &PDFETLProcessor{}
 
 func NewPDFETLProcessor() (*PDFETLProcessor, error) {
-	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " "}
+	separators := []string{"\n\n", "\n", "。", "！", "？", "；", "，", " ", ""}
 	textSplitter := textsplitter.NewRecursiveCharacter(
 		textsplitter.WithSeparators(separators),
 		textsplitter.WithChunkSize(chunkSize),
@@ -57,7 +57,7 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 		texts = append(texts, doc.PageContent)
 	}
 
-	slog.Debug("split pdf successfully", "texts_num", len(texts))
+	slog.Debug("split pdf successfully", "object_name", objectName, "texts_num", len(texts))
 
 	// 生成文档切片的向量
 	vectors, err := p.Embedder.EmbedDocuments(ctx, texts)
@@ -65,7 +65,7 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 		return fmt.Errorf("error embedding pdf: %v", err)
 	}
 
-	slog.Debug("embedded pdf successfully", "vectors_num", len(vectors))
+	slog.Debug("embedded pdf successfully", "object_name", objectName, "vectors_num", len(vectors))
 
 	// 组装列数据，包括文档切片、向量和元数据
 	columns := make([]column.Column, 0)

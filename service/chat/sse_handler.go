@@ -8,6 +8,15 @@ import (
 	"github.com/tmc/langchaingo/callbacks"
 )
 
+const (
+	// Agent输出缓冲区大小阈值
+	prefixBufferMaxKeep = 10
+
+	finalAnswerPrefix   = "AI:"
+	eventImmediateSteps = "immediate_steps"
+	eventFinalAnswer    = "final_answer"
+)
+
 // GinSSEHandler 基于Gin的回调处理器，使用SSE发送Agent的输出内容
 type GinSSEHandler struct {
 	callbacks.SimpleHandler
@@ -15,7 +24,10 @@ type GinSSEHandler struct {
 	ChatHistory *MySQLChatMessageHistory
 	Session     string
 
-	// Agent输出中是否包含final answer
+	// 缓冲区，用于跨 chunk 识别最终答案的前缀
+	prefixBuffer *strings.Builder
+
+	// Agent输出中是否包含最终答案
 	hasFinalAnswer bool
 
 	// 存储Agent的思考步骤
@@ -29,6 +41,7 @@ func NewGinSSEHandler(ctx *gin.Context, chatHistory *MySQLChatMessageHistory, se
 		Ctx:                   ctx,
 		ChatHistory:           chatHistory,
 		Session:               session,
+		prefixBuffer:          &strings.Builder{},
 		hasFinalAnswer:        false,
 		immediateStepsBuilder: &strings.Builder{},
 	}
@@ -38,14 +51,44 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 	text := string(chunk)
 
 	if h.hasFinalAnswer {
-		h.Ctx.SSEvent("final_answer", text)
-	} else if idx := strings.Index(text, "AI:"); idx != -1 {
-		finalText := text[idx+3:]
-		h.Ctx.SSEvent("final_answer", "\n"+finalText)
+		h.Ctx.SSEvent(eventFinalAnswer, text)
+		h.Ctx.Writer.Flush()
+		return
+	}
+
+	// 处于思考阶段
+	h.prefixBuffer.WriteString(text)
+	bufferStr := h.prefixBuffer.String()
+
+	if idx := strings.Index(bufferStr, finalAnswerPrefix); idx != -1 {
+		// 前缀之前为思考内容
+		before := bufferStr[:idx]
+		if len(before) > 0 {
+			h.immediateStepsBuilder.WriteString(before)
+			h.Ctx.SSEvent(eventImmediateSteps, before)
+		}
+
+		// 前缀之后为最终答案
+		after := bufferStr[idx+len(finalAnswerPrefix):]
+		if len(after) > 0 {
+			h.Ctx.SSEvent(eventFinalAnswer, "\n"+after)
+		}
+
 		h.hasFinalAnswer = true
+
+		h.prefixBuffer.Reset()
 	} else {
-		h.immediateStepsBuilder.WriteString(text)
-		h.Ctx.SSEvent("immediate_steps", text)
+		// 保留最后 prefixBufferMaxKeep 个字符, 防止缓冲区过大
+		if h.prefixBuffer.Len() > prefixBufferMaxKeep {
+			flushLen := h.prefixBuffer.Len() - prefixBufferMaxKeep
+			flushText := bufferStr[:flushLen]
+
+			h.immediateStepsBuilder.WriteString(flushText)
+			h.Ctx.SSEvent(eventImmediateSteps, flushText)
+
+			h.prefixBuffer.Reset()
+			h.prefixBuffer.WriteString(bufferStr[flushLen:])
+		}
 	}
 
 	h.Ctx.Writer.Flush()

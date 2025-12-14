@@ -12,7 +12,7 @@ import (
 func ChatVoiceRecognition(c *gin.Context) {
 	file, err := c.FormFile("audio")
 	if err != nil {
-		slog.Error("Chat Voice Recognition", "err", ErrGetAudioFile)
+		slog.Error(ErrGetAudioFile.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrGetAudioFile.Error(),
 		})
@@ -21,7 +21,7 @@ func ChatVoiceRecognition(c *gin.Context) {
 
 	result, err := vr.Recognize(file)
 	if err != nil {
-		slog.Error("Chat Voice Recognition", "err", ErrVoiceRecognition)
+		slog.Error(ErrVoiceRecognition.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrVoiceRecognition.Error(),
 		})

@@ -20,7 +20,7 @@ func GetPolicyToken(c *gin.Context) {
 	email := c.GetString("email")
 	policyToken, err := knowledgebase.GeneratePolicyToken(email)
 	if err != nil {
-		slog.Error("Get Policy Token", "err", ErrGeneratePolicyToken)
+		slog.Error(ErrGeneratePolicyToken.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrGeneratePolicyToken.Error(),
 		})
@@ -36,7 +36,7 @@ func GetKnowledgeMetadata(c *gin.Context) {
 	email := c.GetString("email")
 	metadata, err := dao.GetKnowledgeMetadataByEmail(email)
 	if err != nil {
-		slog.Error("Get Knowledge Metadata", "err", ErrGetKnowledgeMetadata)
+		slog.Error(ErrGetKnowledgeMetadata.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrGetKnowledgeMetadata.Error(),
 		})
@@ -62,7 +62,7 @@ func GetKnowledgeMetadata(c *gin.Context) {
 func UploadKnowledgeMetadata(c *gin.Context) {
 	var req request.UploadKnowledgeMetadataRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		slog.Error("Upload Knowledge Metadata", "err", ErrParseRequest)
+		slog.Error(ErrParseRequest.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrParseRequest.Error(),
 		})
@@ -72,7 +72,7 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 	email := c.GetString("email")
 	err := knowledgebase.UploadKnowledgeMetadata(req, email)
 	if err != nil {
-		slog.Error("Upload Knowledge Metadata", "err", ErrUploadKnowledgeMetadata)
+		slog.Error(ErrUploadKnowledgeMetadata.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrUploadKnowledgeMetadata.Error(),
 		})
@@ -97,7 +97,7 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 	fileName := c.Query("file-name")
 	err := dao.DeleteKnowledgeMetadataByEmailAndFileName(email, fileName)
 	if err != nil {
-		slog.Error("Delete Knowledge Metadata", "err", ErrDeleteKnowledgeMetadata)
+		slog.Error(ErrDeleteKnowledgeMetadata.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrDeleteKnowledgeMetadata.Error(),
 		})

@@ -14,7 +14,7 @@ import (
 func UserRegister(c *gin.Context) {
 	var req request.UserRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		slog.Error("User Register", "err", ErrParseRequest)
+		slog.Error(ErrParseRequest.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrParseRequest.Error(),
 		})
@@ -23,7 +23,7 @@ func UserRegister(c *gin.Context) {
 
 	token, err := middleware.GenerateToken(req.Email)
 	if err != nil {
-		slog.Error("User Register", "err", ErrGenerateToken)
+		slog.Error(ErrGenerateToken.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrGenerateToken.Error(),
 		})
@@ -32,7 +32,7 @@ func UserRegister(c *gin.Context) {
 
 	user, err := auth.UserRegister(req)
 	if err != nil {
-		slog.Error("User Register", "err", ErrUserRegister)
+		slog.Error(ErrUserRegister.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrUserRegister.Error(),
 		})
@@ -51,7 +51,7 @@ func UserRegister(c *gin.Context) {
 func UserLogin(c *gin.Context) {
 	var req request.UserLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		slog.Error("User Login", "err", ErrParseRequest)
+		slog.Error(ErrParseRequest.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrParseRequest.Error(),
 		})
@@ -60,7 +60,7 @@ func UserLogin(c *gin.Context) {
 
 	user, err := auth.UserLogin(req)
 	if err != nil {
-		slog.Error("User Login", "email", req.Email, "err", ErrUserLogin)
+		slog.Error(ErrUserLogin.Error(), "email", req.Email, "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrUserLogin.Error(),
 		})
@@ -69,7 +69,7 @@ func UserLogin(c *gin.Context) {
 
 	token, err := middleware.GenerateToken(user.Email)
 	if err != nil {
-		slog.Error("User Login", "email", user.Email, "err", ErrGenerateToken)
+		slog.Error(ErrGenerateToken.Error(), "email", user.Email, "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrGenerateToken.Error(),
 		})

@@ -9,10 +9,10 @@ var (
 	ErrGenerateToken = errors.New("failed to generate token")
 	ErrUserLogin     = errors.New("failed to login")
 
-	ErrCreateSession     = errors.New("failed to create an agent session")
-	ErrGetSession        = errors.New("failed to get agent sessions")
-	ErrDeleteSession     = errors.New("failed to delete an agent session")
-	ErrGetSessionMessage = errors.New("failed to get session messages")
+	ErrCreateSession      = errors.New("failed to create an agent session")
+	ErrGetSessions        = errors.New("failed to get agent sessions")
+	ErrDeleteSession      = errors.New("failed to delete an agent session")
+	ErrGetSessionMessages = errors.New("failed to get session messages")
 
 	ErrCreateAgent    = errors.New("failed to create an agent")
 	ErrCallAgent      = errors.New("error while calling agent")

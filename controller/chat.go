@@ -15,7 +15,7 @@ func AgentChat(c *gin.Context) {
 
 	var req request.ChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		slog.Error("Agent Chat", "err", ErrParseRequest)
+		slog.Error(ErrParseRequest.Error(), "err", err)
 		c.SSEvent("error", ErrParseRequest.Error())
 		c.Writer.Flush()
 		return
@@ -23,7 +23,7 @@ func AgentChat(c *gin.Context) {
 
 	agent, err := chat.NewAgent(c, req)
 	if err != nil {
-		slog.Error("Agent Chat", "err", ErrCreateAgent)
+		slog.Error(ErrCreateAgent.Error(), "err", err)
 		c.SSEvent("error", ErrCallAgent.Error())
 		c.Writer.Flush()
 		return
@@ -39,10 +39,10 @@ func AgentChat(c *gin.Context) {
 		cancel()
 	}()
 
-	result, err := agent.Call(ctx, req)
+	_, err = agent.Call(ctx, req)
 	if err != nil {
-		slog.Error("Agent Chat", "err", ErrCallAgent)
-		c.SSEvent("error", result)
+		slog.Error(ErrCallAgent.Error(), "err", err)
+		c.SSEvent("error", ErrCallAgent.Error())
 		c.Writer.Flush()
 		return
 	}
@@ -51,7 +51,7 @@ func AgentChat(c *gin.Context) {
 	c.Writer.Flush()
 
 	if err := agent.SaveAgentSteps(ctx); err != nil {
-		slog.Error("Agent Chat", "err", ErrSaveAgentSteps)
+		slog.Error(ErrSaveAgentSteps.Error(), "err", err)
 	}
 
 	// 注册对话摘要生成任务

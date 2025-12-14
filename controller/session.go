@@ -19,7 +19,7 @@ func CreateSession(c *gin.Context) {
 		Title:     model.DefaultSessionTitle,
 	}
 	if err := dao.DB.Create(&session).Error; err != nil {
-		slog.Error("Create Session", "err", ErrCreateSession)
+		slog.Error(ErrCreateSession.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrCreateSession.Error(),
 		})
@@ -38,9 +38,9 @@ func GetSessions(c *gin.Context) {
 	email := c.GetString("email")
 	sessions, err := dao.GetSessionsByEmail(email)
 	if err != nil {
-		slog.Error("Get Sessions", "err", ErrGetSession)
+		slog.Error(ErrGetSessions.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Msg: ErrGetSession.Error(),
+			Msg: ErrGetSessions.Error(),
 		})
 		return
 	}
@@ -62,7 +62,7 @@ func DeleteSession(c *gin.Context) {
 	email := c.GetString("email")
 	sessionID := c.Param("id")
 	if err := dao.DeleteSession(email, sessionID); err != nil {
-		slog.Error("Delete Session", "err", ErrDeleteSession)
+		slog.Error(ErrDeleteSession.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrDeleteSession.Error(),
 		})
@@ -76,9 +76,9 @@ func GetSessionMessages(c *gin.Context) {
 	sessionID := c.Param("id")
 	messages, err := dao.GetMessagesBySessionID(sessionID)
 	if err != nil {
-		slog.Error("Get Session Messages", "err", ErrGetSessionMessage)
+		slog.Error(ErrGetSessionMessages.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Msg: ErrGetSessionMessage.Error(),
+			Msg: ErrGetSessionMessages.Error(),
 		})
 		return
 	}

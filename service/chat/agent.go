@@ -5,9 +5,11 @@ import (
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/utils"
+	_ "embed"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	mcpadapter "github.com/i2y/langchaingo-mcp-adapter"
@@ -22,7 +24,25 @@ import (
 
 const BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
-var httpClient *http.Client = utils.DefaultHTTPClient()
+var (
+	// 配置 300s 超时时间处理 LLM 流式输出
+	agentHTTPClient *http.Client = utils.NewHTTPClient(
+		utils.WithTimeout(300 * time.Second),
+	)
+
+	mcpHTTPClient *http.Client = utils.DefaultHTTPClient()
+)
+
+var (
+	//go:embed prompts/conversational_format_instructions.txt
+	conversationalFormatInstructions string
+
+	//go:embed prompts/conversational_prefix.txt
+	conversationalPrefix string
+
+	//go:embed prompts/conversational_suffix.txt
+	conversationalSuffix string
+)
 
 type Agent struct {
 	Executor    *agents.Executor
@@ -36,7 +56,7 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 		openai.WithModel(req.AgentConfig.Model),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(BaseURL),
-		openai.WithHTTPClient(httpClient),
+		openai.WithHTTPClient(agentHTTPClient),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LLM: %v", err)
@@ -60,10 +80,11 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 		req.SessionID,
 	)
 
-	a := agents.NewConversationalAgent(
-		llm,
-		mcpTools,
+	a := agents.NewConversationalAgent(llm, mcpTools,
 		agents.WithCallbacksHandler(sseHandler),
+		agents.WithPromptPrefix(conversationalPrefix),
+		agents.WithPromptFormatInstructions(conversationalFormatInstructions),
+		agents.WithPromptSuffix(conversationalSuffix),
 	)
 
 	memory := memory.NewConversationBuffer(
@@ -111,7 +132,7 @@ func (a *Agent) Close() error {
 func createMCPClient(c *gin.Context) (*client.Client, error) {
 	mcpServerPath := fmt.Sprintf("http://%s:%s/mcp", config.Cfg.MCP.Host, config.Cfg.MCP.Port)
 	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath,
-		transport.WithHTTPBasicClient(httpClient),
+		transport.WithHTTPBasicClient(mcpHTTPClient),
 		transport.WithHTTPHeaders(map[string]string{
 			"Authorization": c.GetHeader("Authorization"),
 		}),

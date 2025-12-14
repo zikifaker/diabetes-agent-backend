@@ -55,7 +55,7 @@ func NewHTTPClient(opts ...Option) *http.Client {
 
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 60 * time.Second,
 		Transport: &http.Transport{
 			MaxIdleConns:        100,
 			MaxIdleConnsPerHost: 10,

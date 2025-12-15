@@ -12,7 +12,9 @@ const (
 	// Agent输出缓冲区大小阈值
 	prefixBufferMaxKeep = 10
 
-	finalAnswerPrefix   = "AI:"
+	// 最终答案的前缀
+	finalAnswerPrefix = "AI:"
+
 	eventImmediateSteps = "immediate_steps"
 	eventFinalAnswer    = "final_answer"
 )
@@ -56,38 +58,39 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 		return
 	}
 
-	// 处于思考阶段
 	h.prefixBuffer.WriteString(text)
 	bufferStr := h.prefixBuffer.String()
 
 	if idx := strings.Index(bufferStr, finalAnswerPrefix); idx != -1 {
-		// 前缀之前为思考内容
+		// 前缀前为思考内容
 		before := bufferStr[:idx]
 		if len(before) > 0 {
 			h.immediateStepsBuilder.WriteString(before)
 			h.Ctx.SSEvent(eventImmediateSteps, before)
 		}
 
-		// 前缀之后为最终答案
+		// 前缀后为最终答案
 		after := bufferStr[idx+len(finalAnswerPrefix):]
 		if len(after) > 0 {
-			h.Ctx.SSEvent(eventFinalAnswer, "\n"+after)
+			h.Ctx.SSEvent(eventFinalAnswer, after)
 		}
 
 		h.hasFinalAnswer = true
-
 		h.prefixBuffer.Reset()
 	} else {
-		// 保留最后 prefixBufferMaxKeep 个字符, 防止缓冲区过大
-		if h.prefixBuffer.Len() > prefixBufferMaxKeep {
-			flushLen := h.prefixBuffer.Len() - prefixBufferMaxKeep
-			flushText := bufferStr[:flushLen]
+		// 保留最后 prefixBufferMaxKeep 个 rune, 防止缓冲区过大
+		if h.prefixBuffer.Len() > 0 {
+			runes := []rune(bufferStr)
+			if len(runes) > prefixBufferMaxKeep {
+				flushRunes := runes[:len(runes)-prefixBufferMaxKeep]
+				flushText := string(flushRunes)
+				h.immediateStepsBuilder.WriteString(flushText)
+				h.Ctx.SSEvent(eventImmediateSteps, flushText)
 
-			h.immediateStepsBuilder.WriteString(flushText)
-			h.Ctx.SSEvent(eventImmediateSteps, flushText)
-
-			h.prefixBuffer.Reset()
-			h.prefixBuffer.WriteString(bufferStr[flushLen:])
+				remaining := string(runes[len(runes)-prefixBufferMaxKeep:])
+				h.prefixBuffer.Reset()
+				h.prefixBuffer.WriteString(remaining)
+			}
 		}
 	}
 

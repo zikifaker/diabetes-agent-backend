@@ -3,6 +3,7 @@ package controller
 import (
 	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
+	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/response"
 	"log/slog"
 	"net/http"
@@ -96,4 +97,26 @@ func GetSessionMessages(c *gin.Context) {
 	c.JSON(http.StatusOK, response.Response{
 		Data: resp,
 	})
+}
+
+func UpdateSessionTitle(c *gin.Context) {
+	var req request.UpdateSessionTitleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		slog.Error(ErrParseRequest.Error(), "err", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Msg: ErrParseRequest.Error(),
+		})
+		return
+	}
+
+	email := c.GetString("email")
+	if err := dao.UpdateSessionTitle(email, req.SessionID, req.Title); err != nil {
+		slog.Error(ErrUpdateSessionTitle.Error(), "err", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Msg: ErrUpdateSessionTitle.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{})
 }

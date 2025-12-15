@@ -13,6 +13,7 @@ var (
 	ErrGetSessions        = errors.New("failed to get agent sessions")
 	ErrDeleteSession      = errors.New("failed to delete an agent session")
 	ErrGetSessionMessages = errors.New("failed to get session messages")
+	ErrUpdateSessionTitle = errors.New("failed to update session title")
 
 	ErrCreateAgent    = errors.New("failed to create an agent")
 	ErrCallAgent      = errors.New("error while calling agent")

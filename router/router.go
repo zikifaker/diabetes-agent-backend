@@ -26,6 +26,7 @@ func Register() *gin.Engine {
 			protected.GET("/sessions", controller.GetSessions)
 			protected.DELETE("/session/:id", controller.DeleteSession)
 			protected.GET("/session/:id/messages", controller.GetSessionMessages)
+			protected.PUT("/session/:id/title", controller.UpdateSessionTitle)
 
 			protected.POST("/chat", controller.AgentChat)
 

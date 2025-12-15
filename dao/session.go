@@ -43,3 +43,13 @@ func GetMessageByID(messageID uint) (*model.Message, error) {
 	}
 	return &message, nil
 }
+
+func UpdateSessionTitle(email, sessionID, title string) error {
+	result := DB.Model(&model.Session{}).
+		Where("user_email = ? AND session_id = ?", email, sessionID).
+		Update("title", title)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

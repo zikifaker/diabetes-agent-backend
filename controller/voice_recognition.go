@@ -29,9 +29,7 @@ func ChatVoiceRecognition(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Data: struct {
-			Text string `json:"text"`
-		}{
+		Data: response.ChatVoiceRecognitionResponse{
 			Text: result,
 		},
 	})

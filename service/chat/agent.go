@@ -83,7 +83,7 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 	}
 
 	sseHandler := NewGinSSEHandler(c, req.SessionID)
-	registerMCPClientNotifications(ctx, mcpClient, sseHandler)
+	registerMCPNotificationHandler(ctx, mcpClient, sseHandler)
 
 	a := agents.NewConversationalAgent(llm, mcpTools,
 		agents.WithCallbacksHandler(sseHandler),
@@ -180,7 +180,7 @@ func getMCPTools(mcpClient *client.Client, toolNames []string) ([]tools.Tool, er
 }
 
 // 注册通知处理方法，接收 MCP 服务端推送的工具调用结果
-func registerMCPClientNotifications(ctx context.Context, mcpClient *client.Client, sseHandler *GinSSEHandler) {
+func registerMCPNotificationHandler(ctx context.Context, mcpClient *client.Client, sseHandler *GinSSEHandler) {
 	mcpClient.OnNotification(func(notification mcp.JSONRPCNotification) {
 		if notification.Method != methodToolCompleted {
 			return

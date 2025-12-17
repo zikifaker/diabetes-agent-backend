@@ -5,27 +5,29 @@ import (
 	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/service/chat"
 	"diabetes-agent-backend/service/summarization"
+	"diabetes-agent-backend/utils"
+	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tmc/langchaingo/agents"
 )
 
 func AgentChat(c *gin.Context) {
-	setSSEHeader(c)
+	utils.SetSSEHeaders(c)
 
 	var req request.ChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		slog.Error(ErrParseRequest.Error(), "err", err)
-		c.SSEvent("error", ErrParseRequest.Error())
-		c.Writer.Flush()
+		utils.SendSSEMessage(c, "error", ErrParseRequest.Error())
 		return
 	}
 
 	agent, err := chat.NewAgent(c, req)
 	if err != nil {
 		slog.Error(ErrCreateAgent.Error(), "err", err)
-		c.SSEvent("error", ErrCallAgent.Error())
-		c.Writer.Flush()
+		utils.SendSSEMessage(c, "error", ErrCreateAgent.Error())
 		return
 	}
 	defer agent.Close()
@@ -33,22 +35,31 @@ func AgentChat(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
-	// 监听客户端是否断开连接
 	go func() {
 		<-c.Done()
 		cancel()
 	}()
 
-	_, err = agent.Call(ctx, req)
-	if err != nil {
-		slog.Error(ErrCallAgent.Error(), "err", err)
-		c.SSEvent("error", ErrCallAgent.Error())
-		c.Writer.Flush()
-		return
-	}
+	if err := agent.Call(ctx, req); err != nil {
+		targetErr := agents.ErrUnableToParseOutput
 
-	c.SSEvent("done", "")
-	c.Writer.Flush()
+		// 若发生解析 Agent 输出错误，提取最终答案，进行推送和持久化
+		if errors.Is(err, targetErr) {
+			slog.Warn(targetErr.Error())
+
+			result := strings.TrimPrefix(err.Error(), targetErr.Error()+":")
+			utils.SendSSEMessage(c, "final_answer", result)
+			utils.SendSSEMessage(c, "done", "")
+
+			agent.SaveFinalAnswer(ctx, result)
+		} else {
+			slog.Error(ErrCallAgent.Error(), "err", err)
+
+			utils.SendSSEMessage(c, "error", ErrCallAgent.Error())
+			utils.SendSSEMessage(c, "done", "")
+			return
+		}
+	}
 
 	if err := agent.SaveAgentSteps(ctx); err != nil {
 		slog.Error(ErrSaveAgentSteps.Error(), "err", err)
@@ -62,12 +73,4 @@ func AgentChat(c *gin.Context) {
 		},
 	}
 	summarization.SummarizerInstance.RegisterSummaryTask(summaryTask)
-}
-
-func setSSEHeader(c *gin.Context) {
-	c.Writer.Header().Set("Content-Type", "text/event-stream")
-	c.Writer.Header().Set("Cache-Control", "no-cache")
-	c.Writer.Header().Set("Connection", "keep-alive")
-	c.Writer.Header().Set("Transfer-Encoding", "chunked")
-	c.Writer.Header().Set("X-Accel-Buffering", "no")
 }

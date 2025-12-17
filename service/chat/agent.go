@@ -50,10 +50,17 @@ var (
 )
 
 type Agent struct {
-	Executor    *agents.Executor
-	MCPClient   *client.Client
+	// 执行器，负责进行推理
+	Executor *agents.Executor
+
+	// MCP 客户端
+	MCPClient *client.Client
+
+	// 聊天记录存储
 	ChatHistory *MySQLChatMessageHistory
-	SSEHandler  *GinSSEHandler
+
+	// SSE 回调处理器，推送输出结果
+	SSEHandler *GinSSEHandler
 }
 
 func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
@@ -111,12 +118,19 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 	}, nil
 }
 
-func (a *Agent) Call(ctx context.Context, req request.ChatRequest) (string, error) {
-	result, err := chains.Run(ctx, a.Executor, req.Query)
+func (a *Agent) Call(ctx context.Context, req request.ChatRequest) error {
+	_, err := chains.Run(ctx, a.Executor, req.Query)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return result, nil
+	return nil
+}
+
+// SaveFinalAnswer 存储最终答案，当发生解析 Agent 输出错误时调用
+func (a *Agent) SaveFinalAnswer(ctx context.Context, answer string) {
+	if err := a.ChatHistory.AddAIMessage(ctx, answer); err != nil {
+		slog.Error("failed to add ai message", "err", err)
+	}
 }
 
 // SaveAgentSteps 存储思考步骤

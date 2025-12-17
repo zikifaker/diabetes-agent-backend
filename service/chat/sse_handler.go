@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"diabetes-agent-backend/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -27,11 +28,11 @@ type GinSSEHandler struct {
 	Ctx     *gin.Context
 	Session string
 
-	// 缓冲区，用于跨 chunk 识别最终答案的前缀
-	prefixBuffer *strings.Builder
-
 	// Agent 输出中是否包含最终答案
 	hasFinalAnswer bool
+
+	// 缓冲区，用于跨 chunk 识别最终答案的前缀
+	prefixBuffer *strings.Builder
 
 	// 存储 Agent 的思考步骤
 	immediateStepsBuilder *strings.Builder
@@ -43,8 +44,8 @@ func NewGinSSEHandler(ctx *gin.Context, session string) *GinSSEHandler {
 	return &GinSSEHandler{
 		Ctx:                   ctx,
 		Session:               session,
-		prefixBuffer:          &strings.Builder{},
 		hasFinalAnswer:        false,
+		prefixBuffer:          &strings.Builder{},
 		immediateStepsBuilder: &strings.Builder{},
 	}
 }
@@ -53,8 +54,7 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 	text := string(chunk)
 
 	if h.hasFinalAnswer {
-		h.Ctx.SSEvent(eventFinalAnswer, text)
-		h.Ctx.Writer.Flush()
+		utils.SendSSEMessage(h.Ctx, eventFinalAnswer, text)
 		return
 	}
 
@@ -66,13 +66,13 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 		before := bufferStr[:idx]
 		if len(before) > 0 {
 			h.immediateStepsBuilder.WriteString(before)
-			h.Ctx.SSEvent(eventImmediateSteps, before)
+			utils.SendSSEMessage(h.Ctx, eventImmediateSteps, before)
 		}
 
 		// 前缀后为最终答案
 		after := bufferStr[idx+len(finalAnswerPrefix):]
 		if len(after) > 0 {
-			h.Ctx.SSEvent(eventFinalAnswer, after)
+			utils.SendSSEMessage(h.Ctx, eventFinalAnswer, after)
 		}
 
 		h.hasFinalAnswer = true
@@ -85,7 +85,7 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 				flushRunes := runes[:len(runes)-prefixBufferMaxKeep]
 				flushText := string(flushRunes)
 				h.immediateStepsBuilder.WriteString(flushText)
-				h.Ctx.SSEvent(eventImmediateSteps, flushText)
+				utils.SendSSEMessage(h.Ctx, eventImmediateSteps, flushText)
 
 				remaining := string(runes[len(runes)-prefixBufferMaxKeep:])
 				h.prefixBuffer.Reset()
@@ -93,8 +93,6 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 			}
 		}
 	}
-
-	h.Ctx.Writer.Flush()
 }
 
 func (h *GinSSEHandler) HandleToolEnd(ctx context.Context, result string) {

@@ -96,8 +96,7 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 }
 
 func (h *GinSSEHandler) HandleToolEnd(ctx context.Context, result string) {
-	h.Ctx.SSEvent(eventToolCallResult, result)
-	h.Ctx.Writer.Flush()
+	utils.SendSSEMessage(h.Ctx, eventToolCallResult, result)
 }
 
 func (h *GinSSEHandler) GetImmediateSteps() string {

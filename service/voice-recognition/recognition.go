@@ -73,7 +73,7 @@ func Recognize(audioFile *multipart.FileHeader) (string, error) {
 	var result strings.Builder
 
 	// 异步接收WebSocket消息
-	go startResultReceiver(conn, taskStarted, taskDone, &result)
+	go startMessageReceiver(conn, taskStarted, taskDone, &result)
 
 	// 发送run-task命令
 	taskID, err := sendRunTaskCmd(conn)
@@ -82,7 +82,7 @@ func Recognize(audioFile *multipart.FileHeader) (string, error) {
 	}
 
 	// 等待task-started事件
-	if err := waitForTaskStarted(taskStarted); err != nil {
+	if err := waitForTaskStarted(taskStarted, taskID); err != nil {
 		return "", fmt.Errorf("failed to wait for task started: %v", err)
 	}
 
@@ -101,11 +101,11 @@ func Recognize(audioFile *multipart.FileHeader) (string, error) {
 	return result.String(), nil
 }
 
-func startResultReceiver(wsConnection *WSConnection, taskStarted chan<- bool, taskDone chan<- bool, result *strings.Builder) {
+func startMessageReceiver(wsConnection *WSConnection, taskStarted chan<- bool, taskDone chan<- bool, result *strings.Builder) {
 	for {
 		_, message, err := wsConnection.conn.ReadMessage()
 		if err != nil {
-			slog.Error("Failed to parse server message", "err", err)
+			slog.Error("Failed to read messages from server", "err", err)
 			return
 		}
 
@@ -122,23 +122,24 @@ func startResultReceiver(wsConnection *WSConnection, taskStarted chan<- bool, ta
 }
 
 func sendRunTaskCmd(wsConnection *WSConnection) (string, error) {
-	runTaskCmd, taskID, err := generateRunTaskCmd()
+	runTaskCmd := generateRunTaskCmd()
+	runTaskCmdJSON, err := json.Marshal(runTaskCmd)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate run-task cmd: %v", err)
+		return "", fmt.Errorf("failed to marshal run-task cmd: %v", err)
 	}
 
-	err = wsConnection.conn.WriteMessage(websocket.TextMessage, []byte(runTaskCmd))
+	err = wsConnection.conn.WriteMessage(websocket.TextMessage, runTaskCmdJSON)
 	if err != nil {
-		return "", fmt.Errorf("failed to write message: %v", err)
+		return "", fmt.Errorf("failed to write run-task cmd: %v", err)
 	}
 
-	return taskID, nil
+	return runTaskCmd.Header.TaskID, nil
 }
 
-func waitForTaskStarted(taskStarted chan bool) error {
+func waitForTaskStarted(taskStarted chan bool, taskID string) error {
 	select {
 	case <-taskStarted:
-		slog.Debug("start task successfully")
+		slog.Info("start task successfully", "taskID", taskID)
 	case <-time.After(10 * time.Second):
 		return fmt.Errorf("timeout waiting for task-started")
 	}
@@ -173,14 +174,15 @@ func sendAudioData(wsConnection *WSConnection, audioFile *multipart.FileHeader) 
 }
 
 func sendFinishTaskCmd(wsConnection *WSConnection, taskID string) error {
-	finishTaskCmd, err := generateFinishTaskCmd(taskID)
+	finishTaskCmd := generateFinishTaskCmd(taskID)
+	finishTaskCmdJSON, err := json.Marshal(finishTaskCmd)
 	if err != nil {
-		return fmt.Errorf("failed to generate finish-task cmd: %v", err)
+		return fmt.Errorf("failed to marshal finish-task cmd: %v", err)
 	}
 
-	err = wsConnection.conn.WriteMessage(websocket.TextMessage, []byte(finishTaskCmd))
+	err = wsConnection.conn.WriteMessage(websocket.TextMessage, finishTaskCmdJSON)
 	if err != nil {
-		return fmt.Errorf("failed to write message: %v", err)
+		return fmt.Errorf("failed to write finish-task cmd: %v", err)
 	}
 	return nil
 }
@@ -188,7 +190,7 @@ func sendFinishTaskCmd(wsConnection *WSConnection, taskID string) error {
 func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, result *strings.Builder) bool {
 	switch event.Header.Event {
 	case "task-started":
-		slog.Debug("receive task-started event")
+		slog.Info("receive task-started event", "taskID", event.Header.TaskID)
 		taskStarted <- true
 	case "result-generated":
 		// 若语音识别出完整的句子，将结果写入result
@@ -196,7 +198,7 @@ func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, res
 			result.WriteString(event.Payload.Output.Sentence.Text)
 		}
 	case "task-finished":
-		slog.Debug("task finished")
+		slog.Info("task finished", "taskID", event.Header.TaskID)
 		taskDone <- true
 		return true
 	case "task-failed":
@@ -211,18 +213,20 @@ func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, res
 
 func handleTaskFailed(event Event) {
 	if event.Header.ErrorMessage != "" {
-		slog.Error("task failed", "err", event.Header.ErrorMessage)
+		slog.Error("task failed",
+			"taskID", event.Header.TaskID,
+			"err", event.Header.ErrorMessage,
+		)
 	} else {
-		slog.Error("task failed due to unknown reason")
+		slog.Error("task failed due to unknown reason", "taskID", event.Header.TaskID)
 	}
 }
 
-func generateRunTaskCmd() (string, string, error) {
-	taskID := uuid.New().String()
-	runTaskCmd := Event{
+func generateRunTaskCmd() *Event {
+	return &Event{
 		Header: Header{
 			Action:    "run-task",
-			TaskID:    taskID,
+			TaskID:    uuid.New().String(),
 			Streaming: "duplex",
 		},
 		Payload: Payload{
@@ -237,12 +241,10 @@ func generateRunTaskCmd() (string, string, error) {
 			Input: Input{},
 		},
 	}
-	runTaskCmdJSON, err := json.Marshal(runTaskCmd)
-	return string(runTaskCmdJSON), taskID, err
 }
 
-func generateFinishTaskCmd(taskID string) (string, error) {
-	finishTaskCmd := Event{
+func generateFinishTaskCmd(taskID string) *Event {
+	return &Event{
 		Header: Header{
 			Action:    "finish-task",
 			TaskID:    taskID,
@@ -252,6 +254,4 @@ func generateFinishTaskCmd(taskID string) (string, error) {
 			Input: Input{},
 		},
 	}
-	finishTaskCmdJSON, err := json.Marshal(finishTaskCmd)
-	return string(finishTaskCmdJSON), err
 }

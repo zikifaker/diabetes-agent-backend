@@ -86,7 +86,7 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 
 	mcpTools, err := getMCPTools(mcpClient, req.AgentConfig.Tools)
 	if err != nil {
-		slog.Error("failed to get mcp tools", "err", err)
+		slog.Error("Failed to get mcp tools", "err", err)
 	}
 
 	sseHandler := NewGinSSEHandler(c, req.SessionID)
@@ -126,17 +126,19 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest) error {
 	return nil
 }
 
-// SaveFinalAnswer 存储最终答案，当发生解析 Agent 输出错误时调用
+// SaveFinalAnswer 存储最终答案，当发生 ErrUnableToParseOutput 时调用
 func (a *Agent) SaveFinalAnswer(ctx context.Context, answer string) {
 	if err := a.ChatHistory.AddAIMessage(ctx, answer); err != nil {
-		slog.Error("failed to add ai message", "err", err)
+		slog.Error("Failed to save final answer", "err", err)
 	}
 }
 
 // SaveAgentSteps 存储思考步骤
-func (a *Agent) SaveAgentSteps(ctx context.Context) error {
+func (a *Agent) SaveAgentSteps(ctx context.Context) {
 	immediateSteps := a.SSEHandler.GetImmediateSteps()
-	return a.ChatHistory.SetImmediateSteps(ctx, immediateSteps)
+	if err := a.ChatHistory.SetImmediateSteps(ctx, immediateSteps); err != nil {
+		slog.Error("Failed to save agent steps", "err", err)
+	}
 }
 
 func (a *Agent) Close() error {

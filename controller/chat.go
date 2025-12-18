@@ -41,18 +41,17 @@ func AgentChat(c *gin.Context) {
 	}()
 
 	if err := agent.Call(ctx, req); err != nil {
-		targetErr := agents.ErrUnableToParseOutput
+		if errors.Is(err, agents.ErrUnableToParseOutput) {
+			// 若返回 ErrUnableToParseOutput，提取最终答案，进行推送和持久化
+			slog.Warn(agents.ErrUnableToParseOutput.Error())
 
-		// 若发生解析 Agent 输出错误，提取最终答案，进行推送和持久化
-		if errors.Is(err, targetErr) {
-			slog.Warn(targetErr.Error())
-
-			result := strings.TrimPrefix(err.Error(), targetErr.Error()+":")
+			result := strings.TrimPrefix(err.Error(), agents.ErrUnableToParseOutput.Error()+":")
 			utils.SendSSEMessage(c, "final_answer", result)
 			utils.SendSSEMessage(c, "done", "")
 
 			agent.SaveFinalAnswer(ctx, result)
 		} else {
+			// 若返回其他错误，推送错误信息后直接返回
 			slog.Error(ErrCallAgent.Error(), "err", err)
 
 			utils.SendSSEMessage(c, "error", ErrCallAgent.Error())
@@ -61,9 +60,7 @@ func AgentChat(c *gin.Context) {
 		}
 	}
 
-	if err := agent.SaveAgentSteps(ctx); err != nil {
-		slog.Error(ErrSaveAgentSteps.Error(), "err", err)
-	}
+	agent.SaveAgentSteps(ctx)
 
 	// 注册对话摘要生成任务
 	summaryTask := summarization.SummaryTask{

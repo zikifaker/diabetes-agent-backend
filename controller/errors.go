@@ -15,9 +15,8 @@ var (
 	ErrGetSessionMessages = errors.New("failed to get session messages")
 	ErrUpdateSessionTitle = errors.New("failed to update session title")
 
-	ErrCreateAgent    = errors.New("failed to create an agent")
-	ErrCallAgent      = errors.New("error while calling agent")
-	ErrSaveAgentSteps = errors.New("failed to save agent steps")
+	ErrCreateAgent = errors.New("failed to create an agent")
+	ErrCallAgent   = errors.New("error while calling agent")
 
 	ErrGetAudioFile     = errors.New("failed to get audio file")
 	ErrVoiceRecognition = errors.New("failed to recognize audio")

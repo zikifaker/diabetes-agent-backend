@@ -119,3 +119,24 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.Response{})
 }
+
+func GetPreSignedURL(c *gin.Context) {
+	email := c.GetString("email")
+	fileName := c.Query("file-name")
+	objectName := email + "/" + fileName
+
+	url, err := knowledgebase.GeneratePresignedURL(objectName)
+	if err != nil {
+		slog.Error(ErrGetPreSignedURL.Error(), "err", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Msg: ErrGetPreSignedURL.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Data: response.GetPreSignedURLResponse{
+			URL: url,
+		},
+	})
+}

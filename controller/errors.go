@@ -25,4 +25,5 @@ var (
 	ErrGetKnowledgeMetadata    = errors.New("failed to get knowledge metadata")
 	ErrUploadKnowledgeMetadata = errors.New("failed to upload knowledge metadata")
 	ErrDeleteKnowledgeMetadata = errors.New("failed to delete knowledge metadata")
+	ErrGetPreSignedURL         = errors.New("failed to get pre signed url")
 )

@@ -1,34 +1,44 @@
 package knowledgebase
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/response"
+	"diabetes-agent-backend/utils"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"hash"
 	"io"
+	"net/http"
 	"time"
 
+	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
+	osscredentials "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
 	"github.com/aliyun/credentials-go/credentials"
 )
 
 const (
 	product = "oss"
 
-	// 访问OSS的凭证有效期（秒）
+	// STS 临时凭证的会话有效期（单位为秒）
 	roleSessionExpiration = 3600
+
+	// 预签名 URL 的有效期
+	preSignedExpires = 15 * time.Minute
 )
 
 var (
 	bucketName = config.Cfg.OSS.BucketName
 	region     = config.Cfg.OSS.Region
+
+	httpClient *http.Client = utils.DefaultHTTPClient()
 )
 
-// GeneratePolicyToken 获取前端上传文件到OSS的凭证
+// GeneratePolicyToken 应用以 RAM 用户身份扮演 RAM 角色获取 STS 临时凭证，前端使用该凭证访问 OSS
 func GeneratePolicyToken(email string) (*response.GetPolicyTokenResponse, error) {
 	host := fmt.Sprintf("https://%s.oss-%s.aliyuncs.com", bucketName, region)
 
@@ -56,7 +66,6 @@ func GeneratePolicyToken(email string) (*response.GetPolicyTokenResponse, error)
 		return nil, fmt.Errorf("fail to get credential: %v", err)
 	}
 
-	// 构建policy
 	utcTime := time.Now().UTC()
 	date := utcTime.Format("20060102")
 	expiration := utcTime.Add(1 * time.Hour)
@@ -123,4 +132,30 @@ func generateSignature(stringToSign string, cred *credentials.CredentialModel, d
 	signature := hex.EncodeToString(h.Sum(nil))
 
 	return signature
+}
+
+// GeneratePresignedURL 生成预签名URL，用于前端获取临时下载链接
+func GeneratePresignedURL(objectName string) (string, error) {
+	cfg := &oss.Config{
+		Region: oss.Ptr(config.Cfg.OSS.Region),
+		CredentialsProvider: osscredentials.NewStaticCredentialsProvider(
+			config.Cfg.OSS.AccessKeyID,
+			config.Cfg.OSS.AccessKeySecret,
+		),
+		HttpClient: httpClient,
+	}
+	client := oss.NewClient(cfg)
+
+	ctx := context.Background()
+	req := &oss.GetObjectRequest{
+		Bucket: oss.Ptr(bucketName),
+		Key:    oss.Ptr(objectName),
+	}
+
+	result, err := client.Presign(ctx, req, oss.PresignExpires(preSignedExpires))
+	if err != nil {
+		return "", fmt.Errorf("failed to get object presign %v", err)
+	}
+
+	return result.URL, nil
 }

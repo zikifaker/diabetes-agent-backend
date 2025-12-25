@@ -22,10 +22,10 @@ type MySQLChatMessageHistory struct {
 	Session   string
 	Limit     int
 
-	// 每轮对话的Agent消息ID
+	// 每轮对话的 Agent 消息 ID
 	AgentMessageID uint
 
-	// 每轮对话的用户消息ID
+	// 每轮对话的用户消息 ID
 	UserMessageID uint
 }
 

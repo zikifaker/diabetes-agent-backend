@@ -21,3 +21,7 @@ type MetadataResponse struct {
 type GetKnowledgeMetadataResponse struct {
 	Metadata []MetadataResponse `json:"metadata"`
 }
+
+type GetPreSignedURLResponse struct {
+	URL string `json:"url"`
+}

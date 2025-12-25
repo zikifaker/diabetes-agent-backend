@@ -18,10 +18,10 @@ import (
 )
 
 var (
-	// 知识文件ETL处理器注册表
+	// 知识文件 ETL 处理器注册表
 	etlProcessorRegistry []processor.ETLProcessor
 
-	// 全局HTTP客户端，访问OSS时复用
+	// 全局 HTTP 客户端，访问 OSS 时复用
 	httpClient *http.Client = utils.DefaultHTTPClient()
 )
 
@@ -65,7 +65,7 @@ func HandleETLMessage(ctx context.Context, msg *primitive.MessageExt) error {
 
 	slog.Debug("get object from oss successfully", "object_name", etlMessage.ObjectName)
 
-	// 查找匹配文件类型的处理器，执行ETL流程
+	// 查找匹配文件类型的处理器，执行 ETL 流程
 	foundProcessor := false
 	for _, processor := range etlProcessorRegistry {
 		if processor.CanProcess(etlMessage.FileType) {

@@ -16,14 +16,14 @@ func main() {
 	// 启动对话摘要生成服务
 	summarization.SummarizerInstance.Run()
 
-	// 启动MQ服务
+	// 启动 MQ 服务
 	if err := mq.Run(); err != nil {
 		slog.Error("Failed to start MQ service", "err", err)
 		return
 	}
 	defer mq.Shutdown()
 
-	// 启动HTTP服务
+	// 启动 HTTP 服务
 	r := router.Register()
 	if err := r.Run(":" + config.Cfg.Server.Port); err != nil {
 		slog.Error("Failed to start HTTP server", "err", err)

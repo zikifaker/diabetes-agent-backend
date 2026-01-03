@@ -137,7 +137,7 @@ func consumerSubscribe(consumer rocketmq.PushConsumer, topic string, tags ...str
 	return nil
 }
 
-// SendMessage 向MQ发送消息
+// SendMessage 向 MQ 发送消息
 func SendMessage(ctx context.Context, message *Message) error {
 	payloadJSON, err := json.Marshal(message.Payload)
 	if err != nil {
@@ -170,7 +170,7 @@ func SendMessage(ctx context.Context, message *Message) error {
 	return nil
 }
 
-// Shutdown 关闭MQ服务
+// Shutdown 关闭 MQ 服务
 func Shutdown() {
 	if producerInstance != nil {
 		producerInstance.Shutdown()

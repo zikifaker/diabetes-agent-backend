@@ -4,6 +4,7 @@ type ChatRequest struct {
 	SessionID   string      `json:"session_id"`
 	Query       string      `json:"query"`
 	AgentConfig AgentConfig `json:"agent_config"`
+	ImageURL    []string    `json:"image_url"`
 }
 
 type AgentConfig struct {

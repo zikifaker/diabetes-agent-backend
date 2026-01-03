@@ -9,7 +9,7 @@ type GetPolicyTokenResponse struct {
 	Date             string `json:"x_oss_date"`
 	Signature        string `json:"signature"`
 	Host             string `json:"host"`
-	Dir              string `json:"dir"`
+	Key              string `json:"key"`
 }
 
 type MetadataResponse struct {

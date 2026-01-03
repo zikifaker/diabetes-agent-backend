@@ -56,6 +56,9 @@ type Agent struct {
 	// Agent 执行器
 	Executor *agents.Executor
 
+	// LLM 客户端
+	LLMClient *openai.LLM
+
 	// MCP 客户端
 	MCPClient *client.Client
 
@@ -66,7 +69,7 @@ type Agent struct {
 	SSEHandler *GinSSEHandler
 }
 
-func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
+func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 	llm, err := openai.New(
 		openai.WithModel(req.AgentConfig.Model),
 		openai.WithToken(config.Cfg.Model.APIKey),
@@ -115,18 +118,21 @@ func NewAgent(c *gin.Context, req request.ChatRequest) (*Agent, error) {
 
 	return &Agent{
 		Executor:    executor,
+		LLMClient:   llm,
 		MCPClient:   mcpClient,
 		ChatHistory: chatHistory,
 		SSEHandler:  sseHandler,
 	}, nil
 }
 
-func (a *Agent) Call(ctx context.Context, query string, c *gin.Context) error {
+func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Context) error {
+	// TODO: 若用户传入图片URL，调用视觉理解模型生成图片摘要，与 query 拼接
+
 	// 保存数据的上下文，避免外部上下文取消时无法继续保存
 	saveCtx := context.Background()
 
 	// 若 chains.Run 成功执行，会自动存储问答对
-	_, err := chains.Run(ctx, a.Executor, query)
+	_, err := chains.Run(ctx, a.Executor, req.Query)
 	if err != nil {
 		switch {
 		// 若抛出 ErrUnableToParseOutput，从错误信息中提取回答后推送，持久化问答对
@@ -136,7 +142,7 @@ func (a *Agent) Call(ctx context.Context, query string, c *gin.Context) error {
 			answer := strings.TrimPrefix(err.Error(), agents.ErrUnableToParseOutput.Error()+":")
 			utils.SendSSEMessage(c, utils.EventFinalAnswer, answer)
 
-			if err := a.SaveConversation(saveCtx, query, answer); err != nil {
+			if err := a.SaveConversation(saveCtx, req.Query, answer); err != nil {
 				slog.Error("Failed to save agent final answer", "err", err)
 			}
 
@@ -145,7 +151,7 @@ func (a *Agent) Call(ctx context.Context, query string, c *gin.Context) error {
 			slog.Warn("Client canceled")
 
 			answer := a.SSEHandler.FinalAnswer.String()
-			if err := a.SaveConversation(saveCtx, query, answer); err != nil {
+			if err := a.SaveConversation(saveCtx, req.Query, answer); err != nil {
 				slog.Error("Failed to save agent final answer", "err", err)
 			}
 
@@ -166,6 +172,10 @@ func (a *Agent) Call(ctx context.Context, query string, c *gin.Context) error {
 	}
 
 	return nil
+}
+
+func (a *Agent) GenerateImageSummary(ctx context.Context, imageUrl string) (string, error) {
+	return "", nil
 }
 
 // SaveConversation 存储问答对

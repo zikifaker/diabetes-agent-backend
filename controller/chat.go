@@ -22,7 +22,7 @@ func AgentChat(c *gin.Context) {
 		return
 	}
 
-	agent, err := chat.NewAgent(c, req)
+	agent, err := chat.NewAgent(req, c)
 	if err != nil {
 		slog.Error(ErrCreateAgent.Error(), "err", err)
 		utils.SendSSEMessage(c, utils.EventError, ErrCreateAgent)
@@ -40,7 +40,7 @@ func AgentChat(c *gin.Context) {
 		cancel()
 	}()
 
-	if err := agent.Call(ctx, req.Query, c); err != nil {
+	if err := agent.Call(ctx, req, c); err != nil {
 		slog.Error(ErrCallAgent.Error(), "err", err)
 		utils.SendSSEMessage(c, utils.EventError, ErrCallAgent)
 		utils.SendSSEMessage(c, utils.EventDone, "")

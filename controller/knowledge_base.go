@@ -16,22 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetPolicyToken(c *gin.Context) {
-	email := c.GetString("email")
-	policyToken, err := knowledgebase.GeneratePolicyToken(email)
-	if err != nil {
-		slog.Error(ErrGeneratePolicyToken.Error(), "err", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Msg: ErrGeneratePolicyToken.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, response.Response{
-		Data: policyToken,
-	})
-}
-
 func GetKnowledgeMetadata(c *gin.Context) {
 	email := c.GetString("email")
 	metadata, err := dao.GetKnowledgeMetadataByEmail(email)
@@ -118,27 +102,6 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, response.Response{})
-}
-
-func GetPresignedURL(c *gin.Context) {
-	email := c.GetString("email")
-	fileName := c.Query("file-name")
-	objectName := email + "/" + fileName
-
-	url, err := knowledgebase.GeneratePresignedURL(objectName)
-	if err != nil {
-		slog.Error(ErrGetPreSignedURL.Error(), "err", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Msg: ErrGetPreSignedURL.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, response.Response{
-		Data: response.GetPreSignedURLResponse{
-			URL: url,
-		},
-	})
 }
 
 func SearchKnowledgeMetadata(c *gin.Context) {

@@ -62,8 +62,7 @@ func HandleETLMessage(ctx context.Context, msg *primitive.MessageExt) error {
 	if err != nil {
 		return fmt.Errorf("failed to get object from oss: %v", err)
 	}
-
-	slog.Debug("get object from oss successfully", "object_name", etlMessage.ObjectName)
+	slog.Info("get object from oss successfully", "object_name", etlMessage.ObjectName)
 
 	// 查找匹配文件类型的处理器，执行 ETL 流程
 	foundProcessor := false
@@ -94,6 +93,7 @@ func HandleDeleteMessage(ctx context.Context, msg *primitive.MessageExt) error {
 	if err := deleteObjectFromOSS(ctx, &deleteMessage); err != nil {
 		return fmt.Errorf("failed to delete object from oss: %v", err)
 	}
+	slog.Info("delete object from oss successfully", "object_name", deleteMessage.ObjectName)
 
 	foundProcessor := false
 	for _, processor := range etlProcessorRegistry {

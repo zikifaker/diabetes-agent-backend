@@ -87,7 +87,7 @@ func GeneratePolicyToken(req request.OSSAuthRequest) (*response.GetPolicyTokenRe
 	stringToSign := base64.StdEncoding.EncodeToString(policy)
 
 	// 生成对象路径
-	key, err := generateKey(req)
+	key, err := GenerateKey(req)
 	if err != nil {
 		return nil, fmt.Errorf("fail to generate oss key: %v", err)
 	}
@@ -136,7 +136,7 @@ func generatePolicyTokenSignature(stringToSign string, cred *credentials.Credent
 	return signature
 }
 
-func generateKey(req request.OSSAuthRequest) (string, error) {
+func GenerateKey(req request.OSSAuthRequest) (string, error) {
 	switch req.Namespace {
 	// 对象路径格式：knowledge-base/{email}/{fileName}
 	case OSSKeyPrefixKnowledgeBase:
@@ -163,7 +163,7 @@ func GeneratePresignedURL(req request.OSSAuthRequest) (string, error) {
 	}
 	client := oss.NewClient(cfg)
 
-	key, err := generateKey(req)
+	key, err := GenerateKey(req)
 	if err != nil {
 		return "", fmt.Errorf("fail to generate oss key: %v", err)
 	}

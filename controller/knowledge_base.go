@@ -8,6 +8,7 @@ import (
 	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"diabetes-agent-backend/service/knowledge-base/etl"
 	"diabetes-agent-backend/service/mq"
+	ossauth "diabetes-agent-backend/service/oss-auth"
 	"log/slog"
 	"net/http"
 	"path/filepath"
@@ -92,12 +93,25 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 	extension := filepath.Ext(fileName)
 	fileType := strings.TrimPrefix(extension, ".")
 
+	objectName, err := ossauth.GenerateKey(request.OSSAuthRequest{
+		Namespace: ossauth.OSSKeyPrefixKnowledgeBase,
+		Email:     email,
+		FileName:  fileName,
+	})
+	if err != nil {
+		slog.Error(ErrGenerateOSSKey.Error(), "err", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Msg: ErrGenerateOSSKey.Error(),
+		})
+		return
+	}
+
 	mq.SendMessage(c.Request.Context(), &mq.Message{
 		Topic: mq.TopicKnowledgeBase,
 		Tag:   mq.TagDelete,
 		Payload: etl.DeleteMessage{
 			FileType:   model.FileType(fileType),
-			ObjectName: email + "/" + fileName,
+			ObjectName: objectName,
 		},
 	})
 

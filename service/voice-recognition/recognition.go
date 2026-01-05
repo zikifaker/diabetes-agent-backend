@@ -72,16 +72,16 @@ func Recognize(audioFile *multipart.FileHeader) (string, error) {
 	taskDone := make(chan bool)
 	var result strings.Builder
 
-	// 异步接收WebSocket消息
+	// 异步接收 WebSocket 消息
 	go startMessageReceiver(conn, taskStarted, taskDone, &result)
 
-	// 发送run-task命令
+	// 发送 run-task 命令
 	taskID, err := sendRunTaskCmd(conn)
 	if err != nil {
 		return "", fmt.Errorf("failed to send run-task cmd: %v", err)
 	}
 
-	// 等待task-started事件
+	// 等待 task-started 事件
 	if err := waitForTaskStarted(taskStarted, taskID); err != nil {
 		return "", fmt.Errorf("failed to wait for task started: %v", err)
 	}
@@ -153,7 +153,7 @@ func sendAudioData(wsConnection *WSConnection, audioFile *multipart.FileHeader) 
 	}
 	defer file.Close()
 
-	// 假设每100ms的音频文件为1024字节
+	// 假设每 100ms 的音频文件为 1024 字节
 	buf := make([]byte, 1024)
 	for {
 		n, err := file.Read(buf)
@@ -193,7 +193,7 @@ func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, res
 		slog.Info("receive task-started event", "taskID", event.Header.TaskID)
 		taskStarted <- true
 	case "result-generated":
-		// 若语音识别出完整的句子，将结果写入result
+		// 若语音识别出完整的句子，将结果写入 result
 		if event.Payload.Output.Sentence.SentenceEnd {
 			result.WriteString(event.Payload.Output.Sentence.Text)
 		}

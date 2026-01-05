@@ -87,7 +87,7 @@ func (p *PDFETLProcessor) ExecuteETLPipeline(ctx context.Context, data []byte, o
 
 	insertOption := client.NewColumnBasedInsertOption(CollectionName).WithColumns(columns...)
 
-	// 加载数据到milvus
+	// 加载数据到 milvus
 	_, err = p.MilvusClient.Insert(ctx, insertOption)
 	if err != nil {
 		return fmt.Errorf("error inserting pdf chunks: %v", err)

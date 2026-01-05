@@ -26,19 +26,19 @@ const (
 	CollectionName = "knowledge_doc"
 )
 
-// ETLProcessor 知识文件ETL处理器
+// ETLProcessor 知识文件 ETL 处理器
 type ETLProcessor interface {
 	// 判断是否支持传入的文件类型
 	CanProcess(fileType model.FileType) bool
 
-	// 执行ETL流程
+	// 执行 ETL 流程
 	ExecuteETLPipeline(ctx context.Context, object []byte, objectName string) error
 
 	// 删除向量存储
 	DeleteVectorStore(ctx context.Context, objectName string) error
 }
 
-// BaseETLProcessor 基础ETL处理器，提供删除向量存储的默认实现
+// BaseETLProcessor 基础 ETL处理器，提供删除向量存储的默认实现
 type BaseETLProcessor struct {
 	TextSplitter textsplitter.TextSplitter
 	Embedder     embeddings.Embedder
@@ -114,7 +114,7 @@ type Metadata struct {
 	objectName string
 }
 
-// 增加milvus元数据列
+// 增加 milvus 元数据列
 func addMetadataColumns(columns []column.Column, recordNum int, metadata *Metadata) ([]column.Column, error) {
 	pathSegments := strings.Split(metadata.objectName, "/")
 	if len(pathSegments) < 2 {

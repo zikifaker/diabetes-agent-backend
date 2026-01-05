@@ -43,7 +43,7 @@ type Summarizer struct {
 	updateBatchSize int
 }
 
-// SummarizerInstance Summarizer单例实例
+// SummarizerInstance Summarizer 单例实例
 var SummarizerInstance *Summarizer
 
 func init() {
@@ -88,7 +88,7 @@ func (s *Summarizer) RegisterSummaryTask(task SummaryTask) {
 func (s *Summarizer) executeSummarization(ctx context.Context, id int) {
 	slog.Info("Starting summary worker", "worker_id", id)
 
-	// 暂存等待批量更新的message
+	// 暂存等待批量更新的 message
 	updates := make([]*model.Message, 0, s.updateBatchSize)
 
 	defer func() {

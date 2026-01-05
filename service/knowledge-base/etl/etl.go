@@ -19,7 +19,7 @@ import (
 
 var (
 	// 知识文件 ETL 处理器注册表
-	etlProcessorRegistry []processor.ETLProcessor
+	etlProcessors []processor.ETLProcessor
 
 	// 全局 HTTP 客户端，访问 OSS 时复用
 	httpClient *http.Client = utils.DefaultHTTPClient()
@@ -46,7 +46,7 @@ func init() {
 		panic(fmt.Sprintf("error creating MarkdownETLProcessor: %v", err))
 	}
 
-	etlProcessorRegistry = []processor.ETLProcessor{
+	etlProcessors = []processor.ETLProcessor{
 		pdfProcessor,
 		markdownProcessor,
 	}
@@ -66,7 +66,7 @@ func HandleETLMessage(ctx context.Context, msg *primitive.MessageExt) error {
 
 	// 查找匹配文件类型的处理器，执行 ETL 流程
 	foundProcessor := false
-	for _, processor := range etlProcessorRegistry {
+	for _, processor := range etlProcessors {
 		if processor.CanProcess(etlMessage.FileType) {
 			foundProcessor = true
 			if err := processor.ExecuteETLPipeline(ctx, object, etlMessage.ObjectName); err != nil {
@@ -96,7 +96,7 @@ func HandleDeleteMessage(ctx context.Context, msg *primitive.MessageExt) error {
 	slog.Info("delete object from oss successfully", "object_name", deleteMessage.ObjectName)
 
 	foundProcessor := false
-	for _, processor := range etlProcessorRegistry {
+	for _, processor := range etlProcessors {
 		if processor.CanProcess(deleteMessage.FileType) {
 			foundProcessor = true
 			if err := processor.DeleteVectorStore(ctx, deleteMessage.ObjectName); err != nil {

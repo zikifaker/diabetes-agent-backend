@@ -17,7 +17,7 @@ import (
 	"github.com/tmc/langchaingo/textsplitter"
 )
 
-// MarkdownETLProcessor Markdown文件ETL处理器，兼容Text文件
+// MarkdownETLProcessor Markdown 文件 ETL 处理器，兼容 Text 文件
 type MarkdownETLProcessor struct {
 	BaseETLProcessor
 }
@@ -60,7 +60,7 @@ func (p *MarkdownETLProcessor) ExecuteETLPipeline(ctx context.Context, object []
 		return fmt.Errorf("error loading and spliting markdown: %v", err)
 	}
 
-	// 过滤只有孤立标题的chunk
+	// 过滤只有孤立标题的 chunk
 	docs, err = p.filterStandaloneHeaders(docs)
 	if err != nil {
 		return fmt.Errorf("error removing standalone headers: %v", err)
@@ -129,5 +129,6 @@ func (p *MarkdownETLProcessor) filterStandaloneHeaders(docs []schema.Document) (
 
 		filteredDocs = append(filteredDocs, doc)
 	}
+
 	return filteredDocs, nil
 }

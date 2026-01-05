@@ -92,6 +92,7 @@ func GetSessionMessages(c *gin.Context) {
 			Content:         m.Content,
 			ImmediateSteps:  m.ImmediateSteps,
 			ToolCallResults: m.ToolCallResults,
+			UploadedFiles:   m.UploadedFiles,
 		})
 	}
 

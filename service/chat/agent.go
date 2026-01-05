@@ -21,6 +21,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"
+	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/memory"
 	"github.com/tmc/langchaingo/tools"
@@ -33,12 +34,12 @@ const (
 )
 
 var (
-	// 配置 300s 超时时间处理 LLM 流式输出
+	// 配置 300s 超时时间处理流式输出
 	agentHTTPClient *http.Client = utils.NewHTTPClient(
 		utils.WithTimeout(300 * time.Second),
 	)
 
-	mcpHTTPClient *http.Client = utils.DefaultHTTPClient()
+	defaultHTTPClient *http.Client = utils.DefaultHTTPClient()
 )
 
 var (
@@ -55,9 +56,6 @@ var (
 type Agent struct {
 	// Agent 执行器
 	Executor *agents.Executor
-
-	// LLM 客户端
-	LLMClient *openai.LLM
 
 	// MCP 客户端
 	MCPClient *client.Client
@@ -118,7 +116,6 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 
 	return &Agent{
 		Executor:    executor,
-		LLMClient:   llm,
 		MCPClient:   mcpClient,
 		ChatHistory: chatHistory,
 		SSEHandler:  sseHandler,
@@ -126,9 +123,17 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 }
 
 func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Context) error {
-	// TODO: 若用户传入图片URL，调用视觉理解模型生成图片摘要，与 query 拼接
+	// 处理聊天文件
+	if len(req.UploadedFiles) > 0 {
+		email := c.GetString("email")
+		uploadedFilesContext := handleChatFiles(ctx, req, email)
+		req.Query = fmt.Sprintf(`
+			User Question: %s
+			Context from uploaded files:
+			%s`, req.Query, uploadedFilesContext)
+	}
 
-	// 保存数据的上下文，避免外部上下文取消时无法继续保存
+	// 存储聊天信息的上下文，避免请求被取消时保存失败
 	saveCtx := context.Background()
 
 	// 若 chains.Run 成功执行，会自动存储问答对
@@ -142,7 +147,7 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 			answer := strings.TrimPrefix(err.Error(), agents.ErrUnableToParseOutput.Error()+":")
 			utils.SendSSEMessage(c, utils.EventFinalAnswer, answer)
 
-			if err := a.SaveConversation(saveCtx, req.Query, answer); err != nil {
+			if err := a.saveConversation(saveCtx, req.Query, answer); err != nil {
 				slog.Error("Failed to save agent final answer", "err", err)
 			}
 
@@ -151,7 +156,7 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 			slog.Warn("Client canceled")
 
 			answer := a.SSEHandler.FinalAnswer.String()
-			if err := a.SaveConversation(saveCtx, req.Query, answer); err != nil {
+			if err := a.saveConversation(saveCtx, req.Query, answer); err != nil {
 				slog.Error("Failed to save agent final answer", "err", err)
 			}
 
@@ -160,26 +165,24 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 		}
 	}
 
-	// 存储思考步骤
-	immediateSteps := a.SSEHandler.ImmediateSteps.String()
-	if err := a.ChatHistory.SetImmediateSteps(saveCtx, immediateSteps); err != nil {
-		slog.Error("Failed to save agent steps", "err", err)
+	if err := a.ChatHistory.UpdateFields(saveCtx, llms.ChatMessageTypeHuman, &model.Message{
+		UploadedFiles: req.UploadedFiles,
+	}); err != nil {
+		slog.Error("Failed to update user message", "err", err)
 	}
 
-	// 存储工具调用结果
-	if err := a.ChatHistory.SetToolCallResults(saveCtx, a.SSEHandler.ToolCallResults); err != nil {
-		slog.Error("Failed to save agent tool call results", "err", err)
+	if err := a.ChatHistory.UpdateFields(saveCtx, llms.ChatMessageTypeAI, &model.Message{
+		ImmediateSteps:  a.SSEHandler.ImmediateSteps.String(),
+		ToolCallResults: a.SSEHandler.ToolCallResults,
+	}); err != nil {
+		slog.Error("Failed to update agent message", "err", err)
 	}
 
 	return nil
 }
 
-func (a *Agent) GenerateImageSummary(ctx context.Context, imageUrl string) (string, error) {
-	return "", nil
-}
-
 // SaveConversation 存储问答对
-func (a *Agent) SaveConversation(ctx context.Context, query, answer string) error {
+func (a *Agent) saveConversation(ctx context.Context, query, answer string) error {
 	err := a.ChatHistory.AddUserMessage(ctx, query)
 	if err != nil {
 		return err
@@ -203,7 +206,7 @@ func (a *Agent) Close() error {
 func createMCPClient(c *gin.Context) (*client.Client, error) {
 	mcpServerPath := fmt.Sprintf("http://%s:%s/mcp", config.Cfg.MCP.Host, config.Cfg.MCP.Port)
 	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath,
-		transport.WithHTTPBasicClient(mcpHTTPClient),
+		transport.WithHTTPBasicClient(defaultHTTPClient),
 		transport.WithHTTPHeaders(map[string]string{
 			"Authorization": c.GetHeader("Authorization"),
 		}),

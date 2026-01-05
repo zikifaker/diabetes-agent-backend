@@ -4,7 +4,6 @@ import (
 	"context"
 	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
-	"encoding/json"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/schema"
@@ -174,33 +173,21 @@ func (h *MySQLChatMessageHistory) SetMessages(ctx context.Context, messages []ll
 	})
 }
 
-func (h *MySQLChatMessageHistory) SetImmediateSteps(ctx context.Context, steps string) error {
+func (h *MySQLChatMessageHistory) UpdateFields(ctx context.Context, role llms.ChatMessageType, msg *model.Message) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	result := h.DB.WithContext(ctx).
-		Table(h.TableName).
-		Where("id = ?", h.AgentMessageID).
-		Update("immediate_steps", steps)
-
-	return result.Error
-}
-
-func (h *MySQLChatMessageHistory) SetToolCallResults(ctx context.Context, toolCallResults []model.ToolCallResult) error {
-	if ctx == nil {
-		ctx = context.Background()
+	var id uint
+	switch role {
+	case llms.ChatMessageTypeAI:
+		id = h.AgentMessageID
+	case llms.ChatMessageTypeHuman:
+		id = h.UserMessageID
 	}
 
-	toolCallResultsJSON, err := json.Marshal(toolCallResults)
-	if err != nil {
-		return err
-	}
-
-	result := h.DB.WithContext(ctx).
+	return h.DB.WithContext(ctx).
 		Table(h.TableName).
-		Where("id = ?", h.AgentMessageID).
-		Update("tool_call_results", toolCallResultsJSON)
-
-	return result.Error
+		Where("id = ?", id).
+		Updates(msg).Error
 }

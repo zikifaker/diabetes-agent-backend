@@ -21,7 +21,7 @@ var (
 	// 知识文件 ETL 处理器注册表
 	etlProcessors []processor.ETLProcessor
 
-	// 全局 HTTP 客户端，访问 OSS 时复用
+	// OSS HTTP 客户端
 	httpClient *http.Client = utils.DefaultHTTPClient()
 )
 

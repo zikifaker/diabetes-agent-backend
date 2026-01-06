@@ -6,7 +6,6 @@ import (
 	"diabetes-agent-backend/request"
 	ossauth "diabetes-agent-backend/service/oss-auth"
 	"diabetes-agent-backend/utils"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -15,7 +14,7 @@ import (
 	"github.com/tmc/langchaingo/llms/openai"
 )
 
-const modelNameVLM = "qwen3-vl-plus"
+const modelNameVLM = "qwen3-vl-flash"
 
 var (
 	httpClient = utils.DefaultHTTPClient()
@@ -67,25 +66,27 @@ func handleChatFiles(ctx context.Context, req request.ChatRequest, email string)
 	var uploadedFilesContext strings.Builder
 
 	if len(images) > 0 {
-		summary, err := handleImages(ctx, images)
+		content, err := handleImages(ctx, images)
 		if err != nil {
 			slog.Error("failed to handle uploaded images", "err", err)
 		}
-		uploadedFilesContext.WriteString(summary)
+		uploadedFilesContext.WriteString("images:\n")
+		uploadedFilesContext.WriteString(content + "\n\n")
 	}
 
 	if len(docs) > 0 {
-		_, err := handleDocs(ctx, docs)
+		content, err := handleDocs(ctx, docs)
 		if err != nil {
 			slog.Error("failed to handle uploaded docs", "err", err)
 		}
-		uploadedFilesContext.WriteString("\n")
+		uploadedFilesContext.WriteString("docs:\n")
+		uploadedFilesContext.WriteString(content + "\n\n")
 	}
 
 	return uploadedFilesContext.String()
 }
 
-// 从 OSS下载图片并生成图片摘要
+// 从 OSS 下载图片并生成图片摘要
 func handleImages(ctx context.Context, urls []string) (string, error) {
 	vlm, err := openai.New(
 		openai.WithModel(modelNameVLM),
@@ -117,11 +118,7 @@ func handleImages(ctx context.Context, urls []string) (string, error) {
 
 	result, err := vlm.GenerateContent(ctx, messages)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate content: %w", err)
-	}
-
-	if len(result.Choices) == 0 {
-		return "", errors.New("no content choices returned")
+		return "", fmt.Errorf("error generating content: %w", err)
 	}
 
 	return result.Choices[0].Content, nil

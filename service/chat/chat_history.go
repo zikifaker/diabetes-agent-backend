@@ -4,6 +4,8 @@ import (
 	"context"
 	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
+	"regexp"
+	"strings"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/schema"
@@ -94,6 +96,14 @@ func (h *MySQLChatMessageHistory) AddAIMessage(ctx context.Context, text string)
 }
 
 func (h *MySQLChatMessageHistory) AddUserMessage(ctx context.Context, text string) error {
+	// 若用户在对话中上传文件，需要提取原始 query
+	re := regexp.MustCompile(`(?s)User Question:\s*(.*?)\s*\n\s*Context from uploaded files:.*`)
+	matches := re.FindStringSubmatch(text)
+
+	if len(matches) > 1 {
+		text = strings.TrimSpace(matches[1])
+	}
+
 	return h.addMessage(ctx, text, llms.ChatMessageTypeHuman)
 }
 

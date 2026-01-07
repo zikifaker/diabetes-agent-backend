@@ -10,20 +10,14 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net/http"
 
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 )
 
-var (
-	// 知识文件 ETL 处理器注册表
-	etlProcessors []processor.ETLProcessor
-
-	// OSS HTTP 客户端
-	httpClient *http.Client = utils.DefaultHTTPClient()
-)
+// 知识文件 ETL 处理器注册表
+var etlProcessors []processor.ETLProcessor
 
 type ETLMessage struct {
 	FileType   model.FileType `json:"file_type"`
@@ -121,7 +115,7 @@ func getObjectFromOSS(ctx context.Context, etlMessage *ETLMessage) ([]byte, erro
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
 		),
-		HttpClient: httpClient,
+		HttpClient: utils.GlobalHTTPClient,
 	}
 	client := oss.NewClient(cfg)
 
@@ -149,7 +143,7 @@ func deleteObjectFromOSS(ctx context.Context, deleteMessage *DeleteMessage) erro
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
 		),
-		HttpClient: httpClient,
+		HttpClient: utils.GlobalHTTPClient,
 	}
 	client := oss.NewClient(cfg)
 

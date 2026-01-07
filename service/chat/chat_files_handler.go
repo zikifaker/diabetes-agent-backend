@@ -17,8 +17,6 @@ import (
 const modelNameVLM = "qwen3-vl-flash"
 
 var (
-	httpClient = utils.DefaultHTTPClient()
-
 	imageExtensions = []string{".png", ".jpg", ".jpeg", ".gif", ".webp"}
 	docExtensions   = []string{".doc", ".docx", ".pdf", ".xls", ".xlsx", ".txt", ".md"}
 )
@@ -92,7 +90,7 @@ func handleImages(ctx context.Context, urls []string) (string, error) {
 		openai.WithModel(modelNameVLM),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(BaseURL),
-		openai.WithHTTPClient(httpClient),
+		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to create vlm client: %w", err)

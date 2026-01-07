@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"strings"
 	"time"
 
@@ -33,13 +32,9 @@ const (
 	methodToolCompleted = "tool_completed"
 )
 
-var (
-	// 配置 300s 超时时间处理流式输出
-	agentHTTPClient *http.Client = utils.NewHTTPClient(
-		utils.WithTimeout(300 * time.Second),
-	)
-
-	defaultHTTPClient *http.Client = utils.DefaultHTTPClient()
+// Agent 对话服务的 HTTP 客户端，配置 300s 超时时间处理流式输出
+var httpClient = utils.NewHTTPClient(
+	utils.WithTimeout(300 * time.Second),
 )
 
 var (
@@ -72,7 +67,7 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 		openai.WithModel(req.AgentConfig.Model),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(BaseURL),
-		openai.WithHTTPClient(agentHTTPClient),
+		openai.WithHTTPClient(httpClient),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create llm client: %v", err)
@@ -206,7 +201,7 @@ func (a *Agent) Close() error {
 func createMCPClient(c *gin.Context) (*client.Client, error) {
 	mcpServerPath := fmt.Sprintf("http://%s:%s/mcp", config.Cfg.MCP.Host, config.Cfg.MCP.Port)
 	mcpClient, err := client.NewStreamableHttpClient(mcpServerPath,
-		transport.WithHTTPBasicClient(defaultHTTPClient),
+		transport.WithHTTPBasicClient(utils.GlobalHTTPClient),
 		transport.WithHTTPHeaders(map[string]string{
 			"Authorization": c.GetHeader("Authorization"),
 		}),

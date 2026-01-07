@@ -52,7 +52,7 @@ func NewBaseETLProcessor(textSplitter textsplitter.TextSplitter) (*BaseETLProces
 		openai.WithEmbeddingModel(embeddingModelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(chat.BaseURL),
-		openai.WithHTTPClient(utils.DefaultHTTPClient()),
+		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create embedder client: %v", err)

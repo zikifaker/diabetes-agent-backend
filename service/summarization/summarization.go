@@ -33,9 +33,8 @@ const (
 var summaryPrompt string
 
 var (
-	httpClient = utils.DefaultHTTPClient()
-	updates    = make([]*model.Message, 0, updateBatchSize)
-	mu         sync.Mutex
+	updates = make([]*model.Message, 0, updateBatchSize)
+	mu      sync.Mutex
 )
 
 type SummarizeMessage struct {
@@ -118,7 +117,7 @@ func generateSummary(ctx context.Context, role, content string) (string, error) 
 		openai.WithModel(modelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(chat.BaseURL),
-		openai.WithHTTPClient(httpClient),
+		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to create llm client: %v", err)

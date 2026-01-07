@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 
@@ -37,8 +36,6 @@ const (
 var (
 	bucketName = config.Cfg.OSS.BucketName
 	region     = config.Cfg.OSS.Region
-
-	httpClient *http.Client = utils.DefaultHTTPClient()
 )
 
 // GeneratePolicyToken 应用以 RAM 用户身份扮演 RAM 角色获取 STS 临时凭证，前端使用该凭证访问 OSS
@@ -159,7 +156,7 @@ func GeneratePresignedURL(req request.OSSAuthRequest) (string, error) {
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
 		),
-		HttpClient: httpClient,
+		HttpClient: utils.GlobalHTTPClient,
 	}
 	client := oss.NewClient(cfg)
 

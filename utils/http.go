@@ -5,7 +5,29 @@ import (
 	"time"
 )
 
+var GlobalHTTPClient = defaultHTTPClient()
+
 type Option func(*http.Client)
+
+func NewHTTPClient(opts ...Option) *http.Client {
+	client := defaultHTTPClient()
+	for _, opt := range opts {
+		opt(client)
+	}
+	return client
+}
+
+func defaultHTTPClient() *http.Client {
+	return &http.Client{
+		Timeout: 60 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConns:        200,
+			MaxIdleConnsPerHost: 20,
+			IdleConnTimeout:     90 * time.Second,
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
+	}
+}
 
 func WithTimeout(timeout time.Duration) Option {
 	return func(c *http.Client) {
@@ -42,25 +64,5 @@ func WithTLSHandshakeTimeout(timeout time.Duration) Option {
 		if t, ok := c.Transport.(*http.Transport); ok && t != nil {
 			t.TLSHandshakeTimeout = timeout
 		}
-	}
-}
-
-func NewHTTPClient(opts ...Option) *http.Client {
-	client := DefaultHTTPClient()
-	for _, opt := range opts {
-		opt(client)
-	}
-	return client
-}
-
-func DefaultHTTPClient() *http.Client {
-	return &http.Client{
-		Timeout: 60 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 10,
-			IdleConnTimeout:     90 * time.Second,
-			TLSHandshakeTimeout: 10 * time.Second,
-		},
 	}
 }

@@ -20,7 +20,7 @@ var (
 	httpClient = utils.DefaultHTTPClient()
 
 	imageExtensions = []string{".png", ".jpg", ".jpeg", ".gif", ".webp"}
-	docExtensions   = []string{".pdf", ".txt"}
+	docExtensions   = []string{".doc", ".docx", ".pdf", ".xls", ".xlsx", ".txt", ".md"}
 )
 
 func supportImage(fileName string) bool {
@@ -86,7 +86,7 @@ func handleChatFiles(ctx context.Context, req request.ChatRequest, email string)
 	return uploadedFilesContext.String()
 }
 
-// 从 OSS 下载图片并生成图片摘要
+// 调用视觉理解模型生成图片的内容摘要
 func handleImages(ctx context.Context, urls []string) (string, error) {
 	vlm, err := openai.New(
 		openai.WithModel(modelNameVLM),

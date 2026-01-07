@@ -4,6 +4,7 @@ import (
 	"context"
 	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/service/chat"
+	"diabetes-agent-backend/service/mq"
 	"diabetes-agent-backend/service/summarization"
 	"diabetes-agent-backend/utils"
 	"log/slog"
@@ -49,10 +50,14 @@ func AgentChat(c *gin.Context) {
 
 	utils.SendSSEMessage(c, utils.EventDone, "")
 
-	summarization.SummarizerInstance.RegisterSummaryTask(summarization.SummaryTask{
-		MessageIDs: []uint{
-			agent.ChatHistory.UserMessageID,
-			agent.ChatHistory.AgentMessageID,
+	mq.SendMessage(c.Request.Context(), &mq.Message{
+		Topic: mq.TopicAgentContext,
+		Tag:   mq.TagSummarize,
+		Payload: summarization.SummarizeMessage{
+			MsgIDs: []uint{
+				agent.ChatHistory.UserMessageID,
+				agent.ChatHistory.AgentMessageID,
+			},
 		},
 	})
 }

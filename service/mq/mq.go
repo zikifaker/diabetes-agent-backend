@@ -4,10 +4,10 @@ import (
 	"context"
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/service/knowledge-base/etl"
+	"diabetes-agent-backend/service/summarization"
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	c "github.com/apache/rocketmq-client-go/v2/consumer"
@@ -22,10 +22,15 @@ const (
 	TagETL             = "tag_etl"
 	TagDelete          = "tag_delete"
 
-	consumeGroupKnowledgeBase = "cg_knowledge_base"
-	sendMessageAttempts       = 3
-	maxReconsumeTimes         = 5
-	consumeGoroutineNums      = 10
+	TopicAgentContext = "topic_agent_context"
+	TagSummarize      = "tag_summarize"
+
+	consumerGroupKnowledgeBase = "cg_knowledge_base"
+	consumerGroupAgentContext  = "cg_agent_context"
+	maxReconsumeTimes          = 5
+	consumeGoroutineNums       = 10
+
+	sendMessageAttempts = 3
 )
 
 var (
@@ -34,110 +39,76 @@ var (
 
 	// 知识库业务消费者
 	consumerKnowledgeBase rocketmq.PushConsumer
+
+	// Agent 上下文管理消费者
+	consumerAgentContext rocketmq.PushConsumer
 )
 
-type MessageHandler func(context.Context, *primitive.MessageExt) error
-
-type Message struct {
-	Topic   string
-	Tag     string
-	Payload any
-}
-
 func init() {
-	// 设置RocketMQ客户端（使用rlog）的日志级别
+	// 设置 RocketMQ 客户端（使用 rlog）的日志级别
 	rlog.SetLogLevel("warn")
 
 	var err error
-	consumerKnowledgeBase, err = rocketmq.NewPushConsumer(
-		c.WithNameServer(config.Cfg.MQ.NameServer),
-		c.WithGroupName(consumeGroupKnowledgeBase),
-		c.WithConsumerModel(c.Clustering),
-		c.WithConsumeFromWhere(c.ConsumeFromLastOffset),
-		c.WithMaxReconsumeTimes(maxReconsumeTimes),
-		c.WithConsumeGoroutineNums(consumeGoroutineNums),
-	)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to create consumer: %v", err))
-	}
-
 	producerInstance, err = rocketmq.NewProducer(
 		producer.WithNameServer(config.Cfg.MQ.NameServer),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to create producer: %v", err))
 	}
+
+	consumerKnowledgeBase, err = rocketmq.NewPushConsumer(
+		c.WithNameServer(config.Cfg.MQ.NameServer),
+		c.WithGroupName(consumerGroupKnowledgeBase),
+		c.WithConsumerModel(c.Clustering),
+		c.WithConsumeFromWhere(c.ConsumeFromLastOffset),
+		c.WithMaxReconsumeTimes(maxReconsumeTimes),
+		c.WithConsumeGoroutineNums(consumeGoroutineNums),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create knowledge base consumer: %v", err))
+	}
+
+	consumerAgentContext, err = rocketmq.NewPushConsumer(
+		c.WithNameServer(config.Cfg.MQ.NameServer),
+		c.WithGroupName(consumerGroupAgentContext),
+		c.WithConsumerModel(c.Clustering),
+		c.WithConsumeFromWhere(c.ConsumeFromLastOffset),
+		c.WithMaxReconsumeTimes(maxReconsumeTimes),
+		c.WithConsumeGoroutineNums(consumeGoroutineNums),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create agent context consumer: %v", err))
+	}
+
+	dispatcher := NewMessageDispatcher()
+
+	dispatcher.Register(TopicKnowledgeBase, TagETL, etl.HandleETLMessage)
+	dispatcher.Register(TopicKnowledgeBase, TagDelete, etl.HandleDeleteMessage)
+
+	dispatcher.Register(TopicAgentContext, TagSummarize, summarization.HandleSummarizationMessage)
+
+	if err := dispatcher.Bind(consumerKnowledgeBase); err != nil {
+		panic(fmt.Sprintf("Failed to bind dispatcher to knowledge base consumer: %v", err))
+	}
+
+	if err := dispatcher.Bind(consumerAgentContext); err != nil {
+		panic(fmt.Sprintf("Failed to bind dispatcher to agent context consumer: %v", err))
+	}
 }
 
 func Run() error {
-	// 注册消息处理器
-	err := consumerSubscribe(consumerKnowledgeBase, TopicKnowledgeBase,
-		TagETL,
-		TagDelete,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to register handler, topic: %s, tags: %s, err: %v",
-			TopicKnowledgeBase,
-			fmt.Sprintf("%s,%s", TagETL, TagDelete),
-			err,
-		)
-	}
-
 	if err := producerInstance.Start(); err != nil {
 		return fmt.Errorf("failed to start producer: %v", err)
 	}
-
 	if err := consumerKnowledgeBase.Start(); err != nil {
-		return fmt.Errorf("failed to start consumer: %v", err)
+		return fmt.Errorf("failed to start knowledge base consumer: %v", err)
+	}
+	if err := consumerAgentContext.Start(); err != nil {
+		return fmt.Errorf("failed to start agent context consumer: %v", err)
 	}
 	return nil
 }
 
-// consumerSubscribe 消费者订阅
-func consumerSubscribe(consumer rocketmq.PushConsumer, topic string, tags ...string) error {
-	var expression string
-	expression = strings.Join(tags, "||")
-
-	selector := c.MessageSelector{}
-	if expression != "" {
-		selector = c.MessageSelector{
-			Type:       c.TAG,
-			Expression: expression,
-		}
-	}
-
-	err := consumer.Subscribe(topic, selector, func(ctx context.Context, messages ...*primitive.MessageExt) (c.ConsumeResult, error) {
-		for _, msg := range messages {
-			var handler MessageHandler
-			switch msg.GetTags() {
-			case TagETL:
-				handler = etl.HandleETLMessage
-			case TagDelete:
-				handler = etl.HandleDeleteMessage
-			default:
-				slog.Warn("No message handler found for topic", "topic", msg.Topic, "tags", msg.GetTags())
-				continue
-			}
-
-			if err := handler(ctx, msg); err != nil {
-				slog.Error("Failed to process message",
-					"topic", msg.Topic,
-					"msg_id", msg.MsgId,
-					"error", err)
-				return c.ConsumeRetryLater, err
-			}
-		}
-		return c.ConsumeSuccess, nil
-	})
-
-	if err != nil {
-		return fmt.Errorf("failed to subscribe to topic %s: %v", topic, err)
-	}
-
-	return nil
-}
-
-// SendMessage 向 MQ 发送消息
 func SendMessage(ctx context.Context, message *Message) error {
 	payloadJSON, err := json.Marshal(message.Payload)
 	if err != nil {
@@ -160,7 +131,8 @@ func SendMessage(ctx context.Context, message *Message) error {
 			slog.Warn("Retrying to send message",
 				"attempt", n+1,
 				"topic", msg.Topic,
-				"err", err)
+				"err", err,
+			)
 		}),
 	)
 	if err != nil {
@@ -170,7 +142,6 @@ func SendMessage(ctx context.Context, message *Message) error {
 	return nil
 }
 
-// Shutdown 关闭 MQ 服务
 func Shutdown() {
 	if producerInstance != nil {
 		producerInstance.Shutdown()

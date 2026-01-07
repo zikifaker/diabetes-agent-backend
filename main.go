@@ -4,7 +4,6 @@ import (
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/router"
 	"diabetes-agent-backend/service/mq"
-	"diabetes-agent-backend/service/summarization"
 	"log/slog"
 	"os"
 )
@@ -12,9 +11,6 @@ import (
 func main() {
 	// 设置日志
 	setSysLog()
-
-	// 启动对话摘要生成服务
-	summarization.SummarizerInstance.Run()
 
 	// 启动 MQ 服务
 	if err := mq.Run(); err != nil {

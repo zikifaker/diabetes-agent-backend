@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"diabetes-agent-backend/config"
+	"diabetes-agent-backend/service/chat"
 	"diabetes-agent-backend/service/knowledge-base/etl"
 	"diabetes-agent-backend/service/summarization"
 	"encoding/json"
@@ -91,6 +92,7 @@ func init() {
 
 	agentChatDispatcher := NewMessageDispatcher()
 	agentChatDispatcher.Register(TopicAgentChat, TagCompressContext, summarization.HandleSummarizationMessage)
+	agentChatDispatcher.Register(TopicAgentChat, TagDeleteUploadedFiles, chat.HandleDeleteUploadedFilesMessage)
 
 	if err := agentChatDispatcher.Bind(consumerAgentChat); err != nil {
 		panic(fmt.Sprintf("Failed to bind dispatcher to agent chat consumer: %v", err))

@@ -41,9 +41,9 @@ type Message struct {
 	MsgIDs []uint `json:"msg_ids"`
 }
 
-func HandleSummarizationMessage(ctx context.Context, message *primitive.MessageExt) error {
+func HandleSummarizationMessage(ctx context.Context, msg *primitive.MessageExt) error {
 	var summarizationMessage Message
-	if err := json.Unmarshal(message.Body, &summarizationMessage); err != nil {
+	if err := json.Unmarshal(msg.Body, &summarizationMessage); err != nil {
 		return fmt.Errorf("failed to unmarshal message body: %v", err)
 	}
 

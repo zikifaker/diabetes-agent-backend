@@ -6,10 +6,14 @@ import (
 	"diabetes-agent-backend/request"
 	ossauth "diabetes-agent-backend/service/oss-auth"
 	"diabetes-agent-backend/utils"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
 
+	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
+	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 )
@@ -21,22 +25,9 @@ var (
 	docExtensions   = []string{".doc", ".docx", ".pdf", ".xls", ".xlsx", ".txt", ".md"}
 )
 
-func supportImage(fileName string) bool {
-	for _, ext := range imageExtensions {
-		if strings.HasSuffix(fileName, ext) {
-			return true
-		}
-	}
-	return false
-}
-
-func supportDoc(fileName string) bool {
-	for _, ext := range docExtensions {
-		if strings.HasSuffix(fileName, ext) {
-			return true
-		}
-	}
-	return false
+type DeleteUploadedFilesMessage struct {
+	Email     string `json:"email"`
+	SessionID string `json:"session_id"`
 }
 
 func handleChatFiles(ctx context.Context, req request.ChatRequest, email string) string {
@@ -124,4 +115,71 @@ func handleImages(ctx context.Context, urls []string) (string, error) {
 
 func handleDocs(ctx context.Context, urls []string) (string, error) {
 	return "", nil
+}
+
+func supportImage(fileName string) bool {
+	for _, ext := range imageExtensions {
+		if strings.HasSuffix(fileName, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+func supportDoc(fileName string) bool {
+	for _, ext := range docExtensions {
+		if strings.HasSuffix(fileName, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+func HandleDeleteUploadedFilesMessage(ctx context.Context, msg *primitive.MessageExt) error {
+	var message DeleteUploadedFilesMessage
+	if err := json.Unmarshal(msg.Body, &message); err != nil {
+		return fmt.Errorf("failed to unmarshal message: %w", err)
+	}
+
+	cfg := &oss.Config{
+		Region: oss.Ptr(config.Cfg.OSS.Region),
+		CredentialsProvider: credentials.NewStaticCredentialsProvider(
+			config.Cfg.OSS.AccessKeyID,
+			config.Cfg.OSS.AccessKeySecret,
+		),
+		HttpClient: utils.GlobalHTTPClient,
+	}
+	client := oss.NewClient(cfg)
+
+	// 构造对象前缀，过滤出会话中上传的文件
+	prefix := strings.Join([]string{ossauth.OSSKeyPrefixUpload, message.Email, message.SessionID}, "/")
+	result, err := client.ListObjectsV2(ctx, &oss.ListObjectsV2Request{
+		Bucket: oss.Ptr(config.Cfg.OSS.BucketName),
+		Prefix: oss.Ptr(prefix),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to list objects: %w", err)
+	}
+
+	deleteObjects := make([]oss.DeleteObject, 0, result.KeyCount)
+	for i := 0; i < result.KeyCount; i++ {
+		deleteObjects = append(deleteObjects, oss.DeleteObject{
+			Key: result.Contents[i].Key,
+		})
+	}
+
+	_, err = client.DeleteMultipleObjects(ctx, &oss.DeleteMultipleObjectsRequest{
+		Bucket:  oss.Ptr(config.Cfg.OSS.BucketName),
+		Objects: deleteObjects,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete objects: %w", err)
+	}
+
+	slog.Debug("deleted objects",
+		"prefix", prefix,
+		"count", result.KeyCount,
+	)
+
+	return nil
 }

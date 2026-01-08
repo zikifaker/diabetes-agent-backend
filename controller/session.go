@@ -5,6 +5,8 @@ import (
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/response"
+	"diabetes-agent-backend/service/chat"
+	"diabetes-agent-backend/service/mq"
 	"log/slog"
 	"net/http"
 
@@ -71,6 +73,15 @@ func DeleteSession(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Response{})
+
+	mq.SendMessage(c.Request.Context(), &mq.Message{
+		Topic: mq.TopicAgentChat,
+		Tag:   mq.TagDeleteUploadedFiles,
+		Payload: &chat.DeleteUploadedFilesMessage{
+			Email:     email,
+			SessionID: sessionID,
+		},
+	})
 }
 
 func GetSessionMessages(c *gin.Context) {

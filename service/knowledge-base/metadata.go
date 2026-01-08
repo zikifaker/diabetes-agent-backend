@@ -28,19 +28,25 @@ func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email s
 }
 
 func UpdateKnowledgeMetadataStatus(objectName string, status model.Status) error {
-	pathSegments := strings.Split(objectName, "/")
-	if len(pathSegments) < 2 {
-		return fmt.Errorf("invalid object name: %s", objectName)
+	userEmail, fileName, err := ParseObjectName(objectName)
+	if err != nil {
+		return err
 	}
 
-	userEmail := pathSegments[0]
-	fileName := pathSegments[len(pathSegments)-1]
-
-	err := dao.UpdateKnowledgeMetadataStatus(userEmail, fileName, status)
+	err = dao.UpdateKnowledgeMetadataStatus(userEmail, fileName, status)
 	if err != nil {
 		slog.Error("failed to update knowledge metadata", "err", err)
 		return err
 	}
 
 	return nil
+}
+
+// ParseObjectName 解析 objectName，提取 email 和 fileName
+func ParseObjectName(objectName string) (string, string, error) {
+	pathSegments := strings.Split(objectName, "/")
+	if len(pathSegments) < 3 {
+		return "", "", fmt.Errorf("invalid object name: %s", objectName)
+	}
+	return pathSegments[1], pathSegments[len(pathSegments)-1], nil
 }

@@ -5,9 +5,9 @@ import (
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/service/chat"
+	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"diabetes-agent-backend/utils"
 	"fmt"
-	"strings"
 
 	"github.com/milvus-io/milvus/client/v2/column"
 	"github.com/milvus-io/milvus/client/v2/milvusclient"
@@ -91,18 +91,15 @@ func (p *BaseETLProcessor) ExecuteETLPipeline(ctx context.Context, object []byte
 }
 
 func (p *BaseETLProcessor) DeleteVectorStore(ctx context.Context, objectName string) error {
-	pathSegments := strings.Split(objectName, "/")
-	if len(pathSegments) < 2 {
-		return fmt.Errorf("invalid object name: %s", objectName)
+	userEmail, fileName, err := knowledgebase.ParseObjectName(objectName)
+	if err != nil {
+		return fmt.Errorf("error parsing object name: %v", err)
 	}
-
-	userEmail := pathSegments[0]
-	fileName := pathSegments[len(pathSegments)-1]
 
 	expression := fmt.Sprintf("user_email == '%s' and title == '%s'", userEmail, fileName)
 	deleteOption := milvusclient.NewDeleteOption(CollectionName).WithExpr(expression)
 
-	_, err := p.MilvusClient.Delete(ctx, deleteOption)
+	_, err = p.MilvusClient.Delete(ctx, deleteOption)
 	if err != nil {
 		return fmt.Errorf("error deleting document chunks: %v", err)
 	}
@@ -116,13 +113,10 @@ type Metadata struct {
 
 // 增加 milvus 元数据列
 func addMetadataColumns(columns []column.Column, recordNum int, metadata *Metadata) ([]column.Column, error) {
-	pathSegments := strings.Split(metadata.objectName, "/")
-	if len(pathSegments) < 2 {
-		return nil, fmt.Errorf("invalid object name: %s", metadata.objectName)
+	userEmail, title, err := knowledgebase.ParseObjectName(metadata.objectName)
+	if err != nil {
+		return nil, err
 	}
-
-	userEmail := pathSegments[0]
-	title := pathSegments[len(pathSegments)-1]
 
 	titles := make([]string, recordNum)
 	userEmails := make([]string, recordNum)

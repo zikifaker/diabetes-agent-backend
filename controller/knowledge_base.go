@@ -42,8 +42,8 @@ func GetKnowledgeMetadata(c *gin.Context) {
 	})
 }
 
-// UploadKnowledgeMetadata 在前端将文件成功传输到OSS后调用
-// 存储知识文件元数据，向MQ发送向量化任务
+// UploadKnowledgeMetadata 在前端将文件成功传输到 OSS 后调用
+// 存储知识文件元数据，向 MQ 发送向量化任务
 func UploadKnowledgeMetadata(c *gin.Context) {
 	var req request.UploadKnowledgeMetadataRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -76,7 +76,7 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 	c.JSON(http.StatusOK, response.Response{})
 }
 
-// DeleteKnowledgeMetadata 删除知识文件元数据和OSS上的文件，向MQ发送删除任务
+// DeleteKnowledgeMetadata 删除知识文件元数据和 OSS 上的文件，向 MQ 发送删除任务
 func DeleteKnowledgeMetadata(c *gin.Context) {
 	email := c.GetString("email")
 	fileName := c.Query("file-name")
@@ -88,10 +88,6 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 		})
 		return
 	}
-
-	// 获取文件扩展名（包含.）
-	extension := filepath.Ext(fileName)
-	fileType := strings.TrimPrefix(extension, ".")
 
 	objectName, err := ossauth.GenerateKey(request.OSSAuthRequest{
 		Namespace: ossauth.OSSKeyPrefixKnowledgeBase,
@@ -105,6 +101,9 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 		})
 		return
 	}
+
+	extension := filepath.Ext(fileName)
+	fileType := strings.TrimPrefix(extension, ".")
 
 	mq.SendMessage(c.Request.Context(), &mq.Message{
 		Topic: mq.TopicKnowledgeBase,

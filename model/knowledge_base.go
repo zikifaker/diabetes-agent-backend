@@ -34,7 +34,7 @@ type KnowledgeMetadata struct {
 	FileType  FileType  `gorm:"not null" json:"file_type"`
 	FileSize  int64     `gorm:"not null" json:"file_size"`
 
-	// 文件在OSS上的完整路径，不包含bucket名称
+	// 文件在 OSS 上的完整路径，不包含 bucket 名称
 	ObjectName string `gorm:"not null" json:"object_name"`
 
 	// 文件处理状态

@@ -133,6 +133,7 @@ func generatePolicyTokenSignature(stringToSign string, cred *credentials.Credent
 	return signature
 }
 
+// GenerateKey 生成对象路径
 func GenerateKey(req request.OSSAuthRequest) (string, error) {
 	switch req.Namespace {
 	// 对象路径格式：knowledge-base/{email}/{fileName}
@@ -177,4 +178,8 @@ func GeneratePresignedURL(req request.OSSAuthRequest) (string, error) {
 	}
 
 	return result.URL, nil
+}
+
+func ParseObjectName(objectName string) string {
+	return strings.ReplaceAll(objectName, "_", " ")
 }

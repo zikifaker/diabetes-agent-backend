@@ -51,9 +51,9 @@ func AgentChat(c *gin.Context) {
 	utils.SendSSEMessage(c, utils.EventDone, "")
 
 	mq.SendMessage(c.Request.Context(), &mq.Message{
-		Topic: mq.TopicAgentContext,
-		Tag:   mq.TagSummarize,
-		Payload: summarization.SummarizeMessage{
+		Topic: mq.TopicAgentChat,
+		Tag:   mq.TagCompressContext,
+		Payload: summarization.Message{
 			MsgIDs: []uint{
 				agent.ChatHistory.UserMessageID,
 				agent.ChatHistory.AgentMessageID,

@@ -55,6 +55,11 @@ func (d *MessageDispatcher) Bind(consumer rocketmq.PushConsumer) error {
 			Expression: strings.Join(tags, "||"),
 		}
 
+		slog.Debug("bind handler to consumer",
+			"topic", topic,
+			"tags", tags,
+		)
+
 		currRouter := router
 		err := consumer.Subscribe(topic, selector, func(ctx context.Context, msgs ...*primitive.MessageExt) (c.ConsumeResult, error) {
 			for _, msg := range msgs {

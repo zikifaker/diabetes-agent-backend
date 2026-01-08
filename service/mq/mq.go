@@ -22,11 +22,12 @@ const (
 	TagETL             = "tag_etl"
 	TagDelete          = "tag_delete"
 
-	TopicAgentContext = "topic_agent_context"
-	TagSummarize      = "tag_summarize"
+	TopicAgentChat         = "topic_agent_chat"
+	TagCompressContext     = "tag_compress_context"
+	TagDeleteUploadedFiles = "tag_delete_uploaded_files"
 
 	consumerGroupKnowledgeBase = "cg_knowledge_base"
-	consumerGroupAgentContext  = "cg_agent_context"
+	consumerGroupAgentChat     = "cg_agent_chat"
 	maxReconsumeTimes          = 5
 	consumeGoroutineNums       = 10
 
@@ -40,13 +41,13 @@ var (
 	// 知识库业务消费者
 	consumerKnowledgeBase rocketmq.PushConsumer
 
-	// Agent 上下文管理消费者
-	consumerAgentContext rocketmq.PushConsumer
+	// Agent 聊天业务消费者
+	consumerAgentChat rocketmq.PushConsumer
 )
 
 func init() {
 	// 设置 RocketMQ 客户端（使用 rlog）的日志级别
-	rlog.SetLogLevel("warn")
+	rlog.SetLogLevel("error")
 
 	var err error
 	producerInstance, err = rocketmq.NewProducer(
@@ -68,9 +69,9 @@ func init() {
 		panic(fmt.Sprintf("Failed to create knowledge base consumer: %v", err))
 	}
 
-	consumerAgentContext, err = rocketmq.NewPushConsumer(
+	consumerAgentChat, err = rocketmq.NewPushConsumer(
 		c.WithNameServer(config.Cfg.MQ.NameServer),
-		c.WithGroupName(consumerGroupAgentContext),
+		c.WithGroupName(consumerGroupAgentChat),
 		c.WithConsumerModel(c.Clustering),
 		c.WithConsumeFromWhere(c.ConsumeFromLastOffset),
 		c.WithMaxReconsumeTimes(maxReconsumeTimes),
@@ -80,19 +81,19 @@ func init() {
 		panic(fmt.Sprintf("Failed to create agent context consumer: %v", err))
 	}
 
-	dispatcher := NewMessageDispatcher()
+	knowledgeBaseDispatcher := NewMessageDispatcher()
+	knowledgeBaseDispatcher.Register(TopicKnowledgeBase, TagETL, etl.HandleETLMessage)
+	knowledgeBaseDispatcher.Register(TopicKnowledgeBase, TagDelete, etl.HandleDeleteMessage)
 
-	dispatcher.Register(TopicKnowledgeBase, TagETL, etl.HandleETLMessage)
-	dispatcher.Register(TopicKnowledgeBase, TagDelete, etl.HandleDeleteMessage)
-
-	dispatcher.Register(TopicAgentContext, TagSummarize, summarization.HandleSummarizationMessage)
-
-	if err := dispatcher.Bind(consumerKnowledgeBase); err != nil {
+	if err := knowledgeBaseDispatcher.Bind(consumerKnowledgeBase); err != nil {
 		panic(fmt.Sprintf("Failed to bind dispatcher to knowledge base consumer: %v", err))
 	}
 
-	if err := dispatcher.Bind(consumerAgentContext); err != nil {
-		panic(fmt.Sprintf("Failed to bind dispatcher to agent context consumer: %v", err))
+	agentChatDispatcher := NewMessageDispatcher()
+	agentChatDispatcher.Register(TopicAgentChat, TagCompressContext, summarization.HandleSummarizationMessage)
+
+	if err := agentChatDispatcher.Bind(consumerAgentChat); err != nil {
+		panic(fmt.Sprintf("Failed to bind dispatcher to agent chat consumer: %v", err))
 	}
 }
 
@@ -103,8 +104,8 @@ func Run() error {
 	if err := consumerKnowledgeBase.Start(); err != nil {
 		return fmt.Errorf("failed to start knowledge base consumer: %v", err)
 	}
-	if err := consumerAgentContext.Start(); err != nil {
-		return fmt.Errorf("failed to start agent context consumer: %v", err)
+	if err := consumerAgentChat.Start(); err != nil {
+		return fmt.Errorf("failed to start agent chat consumer: %v", err)
 	}
 	return nil
 }
@@ -148,5 +149,8 @@ func Shutdown() {
 	}
 	if consumerKnowledgeBase != nil {
 		consumerKnowledgeBase.Shutdown()
+	}
+	if consumerAgentChat != nil {
+		consumerAgentChat.Shutdown()
 	}
 }

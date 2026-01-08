@@ -37,17 +37,17 @@ var (
 	mu      sync.Mutex
 )
 
-type SummarizeMessage struct {
+type Message struct {
 	MsgIDs []uint `json:"msg_ids"`
 }
 
 func HandleSummarizationMessage(ctx context.Context, message *primitive.MessageExt) error {
-	var summarizeMessage SummarizeMessage
-	if err := json.Unmarshal(message.Body, &summarizeMessage); err != nil {
+	var summarizationMessage Message
+	if err := json.Unmarshal(message.Body, &summarizationMessage); err != nil {
 		return fmt.Errorf("failed to unmarshal message body: %v", err)
 	}
 
-	for _, msgID := range summarizeMessage.MsgIDs {
+	for _, msgID := range summarizationMessage.MsgIDs {
 		msg, err := dao.GetMessageByID(msgID)
 		if err != nil {
 			slog.Error("Failed to get message",

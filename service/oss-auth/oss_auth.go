@@ -179,7 +179,3 @@ func GeneratePresignedURL(req request.OSSAuthRequest) (string, error) {
 
 	return result.URL, nil
 }
-
-func ParseObjectName(objectName string) string {
-	return strings.ReplaceAll(objectName, "_", " ")
-}

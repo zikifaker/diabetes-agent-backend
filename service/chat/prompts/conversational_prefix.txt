@@ -8,5 +8,5 @@ YOU MUST OBEY THE FOLLOWING RULES:
 3. **Strictly follow markdown formatting for output.**
 4. **Use the same language as the user's query.**
 
-You have access to the following tools:
+You have access to the following tools, each tool can be called no more than 5 times:
 {{.tool_descriptions}}

@@ -8,6 +8,7 @@ import (
 	"diabetes-agent-backend/utils"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"strings"
 
@@ -33,22 +34,38 @@ type DeleteUploadedFilesMessage struct {
 func handleChatFiles(ctx context.Context, req request.ChatRequest, email string) string {
 	var images, docs []string
 	for _, fileName := range req.UploadedFiles {
-		url, err := ossauth.GeneratePresignedURL(request.OSSAuthRequest{
+		req := request.OSSAuthRequest{
 			Namespace: ossauth.OSSKeyPrefixUpload,
 			Email:     email,
 			SessionID: req.SessionID,
 			FileName:  fileName,
-		})
-		if err != nil {
-			slog.Error("failed to generate presigned url", "err", err)
-			continue
 		}
 
 		switch {
 		case supportImage(fileName):
+			url, err := ossauth.GeneratePresignedURL(req)
+			if err != nil {
+				slog.Error("failed to generate presigned url",
+					"file_name", fileName,
+					"err", err,
+				)
+				continue
+			}
 			images = append(images, url)
+
 		case supportDoc(fileName):
-			docs = append(docs, url)
+			objectName, err := ossauth.GenerateKey(req)
+			if err != nil {
+				slog.Error("failed to generate oss key",
+					"file_name", fileName,
+					"err", err,
+				)
+				continue
+			}
+			docs = append(docs, objectName)
+
+		default:
+			slog.Warn("unsupported file type", "file_name", fileName)
 		}
 	}
 
@@ -113,8 +130,48 @@ func handleImages(ctx context.Context, urls []string) (string, error) {
 	return result.Choices[0].Content, nil
 }
 
-func handleDocs(ctx context.Context, urls []string) (string, error) {
-	return "", nil
+func handleDocs(ctx context.Context, objectNames []string) (string, error) {
+	cfg := &oss.Config{
+		Region: oss.Ptr(config.Cfg.OSS.Region),
+		CredentialsProvider: credentials.NewStaticCredentialsProvider(
+			config.Cfg.OSS.AccessKeyID,
+			config.Cfg.OSS.AccessKeySecret,
+		),
+		HttpClient: utils.GlobalHTTPClient,
+	}
+	client := oss.NewClient(cfg)
+
+	var content strings.Builder
+	for _, objectName := range objectNames {
+		request := &oss.GetObjectRequest{
+			Bucket: oss.Ptr(config.Cfg.OSS.BucketName),
+			Key:    oss.Ptr(objectName),
+		}
+
+		resp, err := client.GetObject(ctx, request)
+		if err != nil {
+			slog.Error("failed to get object",
+				"object_name", objectName,
+				"err", err,
+			)
+			continue
+		}
+
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			slog.Error("failed to read object",
+				"object_name", objectName,
+				"err", err,
+			)
+		}
+		content.WriteString(objectName + ":\n")
+		content.WriteString(string(data))
+		content.WriteString("\n\n")
+
+		resp.Body.Close()
+	}
+
+	return content.String(), nil
 }
 
 func supportImage(fileName string) bool {
@@ -151,7 +208,7 @@ func HandleDeleteUploadedFilesMessage(ctx context.Context, msg *primitive.Messag
 	}
 	client := oss.NewClient(cfg)
 
-	// 构造对象前缀，过滤出会话中上传的文件
+	// 构造对象前缀，过滤出当前会话的文件
 	prefix := strings.Join([]string{ossauth.OSSKeyPrefixUpload, message.Email, message.SessionID}, "/")
 	result, err := client.ListObjectsV2(ctx, &oss.ListObjectsV2Request{
 		Bucket: oss.Ptr(config.Cfg.OSS.BucketName),

@@ -167,8 +167,8 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 	}
 
 	if err := a.ChatHistory.UpdateFields(saveCtx, llms.ChatMessageTypeAI, &model.Message{
-		ImmediateSteps:  a.SSEHandler.ImmediateSteps.String(),
-		ToolCallResults: a.SSEHandler.ToolCallResults,
+		IntermediateSteps: a.SSEHandler.IntermediateSteps.String(),
+		ToolCallResults:   a.SSEHandler.ToolCallResults,
 	}); err != nil {
 		slog.Error("Failed to update agent message", "err", err)
 	}

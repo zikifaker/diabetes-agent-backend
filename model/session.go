@@ -22,16 +22,16 @@ func (Session) TableName() string {
 // Message 存储聊天记录
 // 建立联合索引 (session_id, created_at)
 type Message struct {
-	ID              uint             `gorm:"primarykey" json:"id"`
-	CreatedAt       time.Time        `gorm:"index:idx_session_created" json:"created_at"`
-	UpdatedAt       time.Time        `json:"updated_at"`
-	SessionID       string           `gorm:"not null;index:idx_session_created" json:"session_id"`
-	Role            string           `gorm:"not null" json:"role"`
-	Content         string           `gorm:"type:text" json:"content"`
-	Summary         string           `gorm:"type:text" json:"summary"`
-	ImmediateSteps  string           `gorm:"type:text" json:"immediate_steps"`
-	ToolCallResults []ToolCallResult `gorm:"type:json;serializer:json" json:"tool_call_results"`
-	UploadedFiles   []string         `gorm:"type:json;serializer:json" json:"uploaded_files"`
+	ID                uint             `gorm:"primarykey" json:"id"`
+	CreatedAt         time.Time        `gorm:"index:idx_session_created" json:"created_at"`
+	UpdatedAt         time.Time        `json:"updated_at"`
+	SessionID         string           `gorm:"not null;index:idx_session_created" json:"session_id"`
+	Role              string           `gorm:"not null" json:"role"`
+	Content           string           `gorm:"type:text" json:"content"`
+	Summary           string           `gorm:"type:text" json:"summary"`
+	IntermediateSteps string           `gorm:"type:text" json:"intermediate_steps"`
+	ToolCallResults   []ToolCallResult `gorm:"type:json;serializer:json" json:"tool_call_results"`
+	UploadedFiles     []string         `gorm:"type:json;serializer:json" json:"uploaded_files"`
 }
 
 type ToolCallResult struct {

@@ -26,7 +26,7 @@ type GinSSEHandler struct {
 	Session string
 
 	// 存储 Agent 的思考步骤
-	ImmediateSteps *strings.Builder
+	IntermediateSteps *strings.Builder
 
 	// 存储 Agent 的最终答案
 	FinalAnswer *strings.Builder
@@ -44,11 +44,11 @@ var _ callbacks.Handler = &GinSSEHandler{}
 
 func NewGinSSEHandler(ctx *gin.Context, session string) *GinSSEHandler {
 	return &GinSSEHandler{
-		Ctx:            ctx,
-		Session:        session,
-		ImmediateSteps: &strings.Builder{},
-		FinalAnswer:    &strings.Builder{},
-		prefixBuffer:   &strings.Builder{},
+		Ctx:               ctx,
+		Session:           session,
+		IntermediateSteps: &strings.Builder{},
+		FinalAnswer:       &strings.Builder{},
+		prefixBuffer:      &strings.Builder{},
 	}
 }
 
@@ -68,8 +68,8 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 		// 前缀前为思考内容
 		before := bufferStr[:idx]
 		if len(before) > 0 {
-			h.ImmediateSteps.WriteString(before)
-			utils.SendSSEMessage(h.Ctx, utils.EventImmediateSteps, before)
+			h.IntermediateSteps.WriteString(before)
+			utils.SendSSEMessage(h.Ctx, utils.EventIntermediateSteps, before)
 		}
 
 		// 前缀后为最终答案
@@ -88,8 +88,8 @@ func (h *GinSSEHandler) HandleStreamingFunc(ctx context.Context, chunk []byte) {
 			if len(runes) > prefixBufferMaxKeep {
 				flushRunes := runes[:len(runes)-prefixBufferMaxKeep]
 				flushText := string(flushRunes)
-				h.ImmediateSteps.WriteString(flushText)
-				utils.SendSSEMessage(h.Ctx, utils.EventImmediateSteps, flushText)
+				h.IntermediateSteps.WriteString(flushText)
+				utils.SendSSEMessage(h.Ctx, utils.EventIntermediateSteps, flushText)
 
 				remaining := string(runes[len(runes)-prefixBufferMaxKeep:])
 				h.prefixBuffer.Reset()

@@ -64,6 +64,8 @@ func GetSessions(c *gin.Context) {
 func DeleteSession(c *gin.Context) {
 	email := c.GetString("email")
 	sessionID := c.Param("id")
+	hasUploadedFiles := c.Query("has_uploaded_files") == "true"
+
 	if err := dao.DeleteSession(email, sessionID); err != nil {
 		slog.Error(ErrDeleteSession.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -74,14 +76,16 @@ func DeleteSession(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.Response{})
 
-	mq.SendMessage(c.Request.Context(), &mq.Message{
-		Topic: mq.TopicAgentChat,
-		Tag:   mq.TagDeleteUploadedFiles,
-		Payload: &chat.DeleteUploadedFilesMessage{
-			Email:     email,
-			SessionID: sessionID,
-		},
-	})
+	if hasUploadedFiles {
+		mq.SendMessage(c.Request.Context(), &mq.Message{
+			Topic: mq.TopicAgentChat,
+			Tag:   mq.TagDeleteUploadedFiles,
+			Payload: &chat.DeleteUploadedFilesMessage{
+				Email:     email,
+				SessionID: sessionID,
+			},
+		})
+	}
 }
 
 func GetSessionMessages(c *gin.Context) {

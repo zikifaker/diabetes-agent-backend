@@ -218,6 +218,11 @@ func HandleDeleteUploadedFilesMessage(ctx context.Context, msg *primitive.Messag
 		return fmt.Errorf("failed to list objects: %w", err)
 	}
 
+	if result.KeyCount == 0 {
+		slog.Warn("no objects found")
+		return nil
+	}
+
 	deleteObjects := make([]oss.DeleteObject, 0, result.KeyCount)
 	for i := 0; i < result.KeyCount; i++ {
 		deleteObjects = append(deleteObjects, oss.DeleteObject{
@@ -233,8 +238,8 @@ func HandleDeleteUploadedFilesMessage(ctx context.Context, msg *primitive.Messag
 		return fmt.Errorf("failed to delete objects: %w", err)
 	}
 
-	slog.Debug("deleted objects",
-		"prefix", prefix,
+	slog.Info("deleted uploaded files",
+		"object_prefix", prefix,
 		"count", result.KeyCount,
 	)
 

@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	// WebSocket连接允许的最大空闲时间
+	// WebSocket 连接允许的最大空闲时间
 	maxIdleTime = 60 * time.Second
 
 	// 连接池大小
 	poolSize = 100
 
-	// 语音识别服务URL
+	// 语音识别服务 URL
 	url = "wss://dashscope.aliyuncs.com/api-ws/v1/inference/"
 )
 
@@ -26,7 +26,7 @@ type WSConnection struct {
 	taskID   string
 }
 
-// WSConnectionPool WebSocket连接池
+// WSConnectionPool WebSocket 连接池
 type WSConnectionPool struct {
 	pool   chan *WSConnection
 	dialer *websocket.Dialer

@@ -19,8 +19,15 @@ func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email s
 		return fmt.Errorf("file already exists")
 	}
 
-	err = dao.SaveKnowledgeMetadata(req, email)
-	if err != nil {
+	record := model.KnowledgeMetadata{
+		UserEmail:  email,
+		FileName:   req.FileName,
+		FileType:   model.FileType(req.FileType),
+		FileSize:   req.FileSize,
+		ObjectName: req.ObjectName,
+		Status:     model.StatusUploaded,
+	}
+	if err := dao.DB.Create(&record).Error; err != nil {
 		return fmt.Errorf("failed to save knowledge metadata: %v", err)
 	}
 

@@ -31,7 +31,7 @@ type KnowledgeMetadata struct {
 	UpdatedAt time.Time `gorm:"not null" json:"updated_at"`
 	UserEmail string    `gorm:"not null;index:idx_email_created" json:"user_email"`
 	FileName  string    `gorm:"not null;index:idx_fulltext_file_name,class:FULLTEXT,option:WITH PARSER ngram" json:"file_name"`
-	FileType  FileType  `gorm:"not null" json:"file_type"`
+	FileType  FileType  `gorm:"not null type:enum('pdf','md','txt')" json:"file_type"`
 	FileSize  int64     `gorm:"not null" json:"file_size"`
 
 	// 文件在 OSS 上的完整路径，不包含 bucket 名称

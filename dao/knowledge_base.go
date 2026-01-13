@@ -2,23 +2,10 @@ package dao
 
 import (
 	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
 	"errors"
 
 	"gorm.io/gorm"
 )
-
-func SaveKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email string) error {
-	fileMetadata := model.KnowledgeMetadata{
-		UserEmail:  email,
-		FileName:   req.FileName,
-		FileType:   model.FileType(req.FileType),
-		FileSize:   req.FileSize,
-		ObjectName: req.ObjectName,
-		Status:     model.StatusUploaded,
-	}
-	return DB.Create(&fileMetadata).Error
-}
 
 func GetKnowledgeMetadataByEmail(email string) ([]model.KnowledgeMetadata, error) {
 	var fileMetadata []model.KnowledgeMetadata

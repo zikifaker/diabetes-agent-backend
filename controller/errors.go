@@ -28,4 +28,9 @@ var (
 	ErrGenerateOSSKey          = errors.New("failed to generate oss key")
 	ErrGetPreSignedURL         = errors.New("failed to get presigned url")
 	ErrSearchKnowledgeMetadata = errors.New("failed to search knowledge metadata")
+
+	ErrCreateBloodGlucoseRecord = errors.New("failed to create blood glucose record")
+	ErrGetBloodGlucoseRecords   = errors.New("failed to get blood glucose records")
+	ErrInvalidDate              = errors.New("invalid date")
+	ErrInvalidDateRange         = errors.New("invalid date range")
 )

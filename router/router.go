@@ -39,6 +39,9 @@ func Register() *gin.Engine {
 			protected.POST("/kb/metadata", controller.UploadKnowledgeMetadata)
 			protected.DELETE("/kb/metadata", controller.DeleteKnowledgeMetadata)
 			protected.GET("/kb/metadata/search", controller.SearchKnowledgeMetadata)
+
+			protected.POST("/blood-glucose/record", controller.CreateBloodGlucoseRecord)
+			protected.GET("/blood-glucose/records", controller.GetBloodGlucoseRecords)
 		}
 	}
 

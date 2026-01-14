@@ -28,7 +28,6 @@ func CreateBloodGlucoseRecord(c *gin.Context) {
 		Value:        req.Value,
 		MeasuredAt:   req.MeasuredAt,
 		DiningStatus: req.DiningStatus,
-		Notes:        req.Notes,
 	}
 	if err := dao.DB.Create(&record).Error; err != nil {
 		slog.Error(ErrCreateBloodGlucoseRecord.Error(), "err", err)
@@ -76,7 +75,16 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 		return
 	}
 
+	var resp response.GetBloodGlucoseRecordsResponse
+	for _, record := range records {
+		resp.Records = append(resp.Records, response.BloodGlucoseRecordResponse{
+			Value:        record.Value,
+			MeasuredAt:   record.MeasuredAt,
+			DiningStatus: record.DiningStatus,
+		})
+	}
+
 	c.JSON(http.StatusOK, response.Response{
-		Data: records,
+		Data: resp,
 	})
 }

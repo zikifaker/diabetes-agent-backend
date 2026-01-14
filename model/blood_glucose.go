@@ -32,7 +32,6 @@ type BloodGlucoseRecord struct {
 	Value        float32   `gorm:"not null" json:"value"`
 	MeasuredAt   time.Time `gorm:"not null;index:idx_email_measured_at" json:"measured_at"`
 	DiningStatus string    `gorm:"not null;type:enum('fasting','before_breakfast','after_breakfast','before_lunch','after_lunch','before_dinner','after_dinner','bedtime','random')" json:"dining_status"`
-	Notes        string    `gorm:"type:text" json:"notes"`
 }
 
 func (BloodGlucoseRecord) TableName() string {

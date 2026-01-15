@@ -5,7 +5,9 @@ import (
 	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
 	"regexp"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/schema"
@@ -48,22 +50,29 @@ func (h *MySQLChatMessageHistory) Messages(ctx context.Context) ([]llms.ChatMess
 	}
 
 	var messages []struct {
-		Content string
-		Summary string
-		Role    string
+		Content   string
+		Summary   string
+		Role      string
+		CreatedAt time.Time
 	}
 
+	// 获取最近 limit 条消息
 	result := h.DB.WithContext(ctx).
 		Table(h.TableName).
-		Select("content, summary, role").
+		Select("content, summary, role, created_at").
 		Where("session_id = ?", h.Session).
-		Order("created_at ASC").
+		Order("created_at DESC").
 		Limit(h.Limit).
 		Find(&messages)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
+	// 按照创建时间升序排序
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].CreatedAt.Before(messages[j].CreatedAt)
+	})
 
 	var msgs []llms.ChatMessage
 	for _, msg := range messages {

@@ -33,4 +33,5 @@ var (
 	ErrGetBloodGlucoseRecords   = errors.New("failed to get blood glucose records")
 	ErrInvalidDate              = errors.New("invalid date")
 	ErrInvalidDateRange         = errors.New("invalid date range")
+	ErrInvalidBloodGlucose      = errors.New("invalid blood glucose data")
 )

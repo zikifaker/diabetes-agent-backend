@@ -22,6 +22,14 @@ func CreateBloodGlucoseRecord(c *gin.Context) {
 		return
 	}
 
+	if req.Value < model.ValueMin || req.Value > model.ValueMax {
+		slog.Error(ErrInvalidBloodGlucose.Error(), "value", req.Value)
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Msg: ErrInvalidBloodGlucose.Error(),
+		})
+		return
+	}
+
 	email := c.GetString("email")
 	record := model.BloodGlucoseRecord{
 		UserEmail:    email,
@@ -45,6 +53,9 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 
 	start, err := time.Parse(time.RFC3339, startStr)
 	if err != nil {
+		slog.Error(ErrInvalidDate.Error(),
+			"start", startStr,
+			"err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrInvalidDate.Error(),
 		})
@@ -53,6 +64,9 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 
 	end, err := time.Parse(time.RFC3339, endStr)
 	if err != nil {
+		slog.Error(ErrInvalidDate.Error(),
+			"end", endStr,
+			"err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrInvalidDate.Error(),
 		})
@@ -60,6 +74,9 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 	}
 
 	if start.After(end) {
+		slog.Error(ErrInvalidDateRange.Error(),
+			"start", startStr,
+			"end", endStr)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Msg: ErrInvalidDateRange.Error(),
 		})

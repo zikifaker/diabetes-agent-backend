@@ -24,11 +24,6 @@ const (
 	ReportTypeYearly  = "yearly"
 )
 
-const (
-	ValueMin = 0
-	ValueMax = 100
-)
-
 type BloodGlucoseRecord struct {
 	ID           uint      `gorm:"primarykey" json:"id"`
 	CreatedAt    time.Time `gorm:"not null" json:"created_at"`

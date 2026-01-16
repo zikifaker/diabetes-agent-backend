@@ -22,14 +22,6 @@ func CreateBloodGlucoseRecord(c *gin.Context) {
 		return
 	}
 
-	if req.Value < model.ValueMin || req.Value > model.ValueMax {
-		slog.Error(ErrInvalidBloodGlucose.Error(), "value", req.Value)
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Msg: ErrInvalidBloodGlucose.Error(),
-		})
-		return
-	}
-
 	email := c.GetString("email")
 	record := model.BloodGlucoseRecord{
 		UserEmail:    email,

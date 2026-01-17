@@ -43,24 +43,25 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 	startStr := c.Query("start")
 	endStr := c.Query("end")
 
-	start, err := time.Parse(time.RFC3339, startStr)
+	loc, _ := time.LoadLocation("UTC")
+	start, err := time.ParseInLocation(time.RFC3339, startStr, loc)
 	if err != nil {
-		slog.Error(ErrInvalidDate.Error(),
+		slog.Error(ErrUnableToParseTime.Error(),
 			"start", startStr,
 			"err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Msg: ErrInvalidDate.Error(),
+			Msg: ErrUnableToParseTime.Error(),
 		})
 		return
 	}
 
-	end, err := time.Parse(time.RFC3339, endStr)
+	end, err := time.ParseInLocation(time.RFC3339, endStr, loc)
 	if err != nil {
-		slog.Error(ErrInvalidDate.Error(),
+		slog.Error(ErrUnableToParseTime.Error(),
 			"end", endStr,
 			"err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Msg: ErrInvalidDate.Error(),
+			Msg: ErrUnableToParseTime.Error(),
 		})
 		return
 	}

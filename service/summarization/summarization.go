@@ -1,7 +1,6 @@
 package summarization
 
 import (
-	"bytes"
 	"context"
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/dao"
@@ -11,13 +10,13 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log/slog"
 	"sync"
 
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/tmc/langchaingo/prompts"
 	"gorm.io/gorm"
 )
 
@@ -95,22 +94,13 @@ func HandleSummarizationMessage(ctx context.Context, msg *primitive.MessageExt) 
 }
 
 func generateSummary(ctx context.Context, role, content string) (string, error) {
-	tmpl, err := template.New("prompt").Parse(summaryPrompt)
+	template := prompts.NewPromptTemplate(summaryPrompt, []string{"role", "content"})
+	prompt, err := template.Format(map[string]any{
+		"role":    role,
+		"content": content,
+	})
 	if err != nil {
-		return "", fmt.Errorf("failed to parse prompt template: %v", err)
-	}
-
-	var buf bytes.Buffer
-	data := struct {
-		Role    string
-		Content string
-	}{
-		Role:    role,
-		Content: content,
-	}
-
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return "", fmt.Errorf("failed to execute template: %v", err)
+		return "", fmt.Errorf("failed to format prompt: %v", err)
 	}
 
 	llm, err := openai.New(
@@ -123,7 +113,7 @@ func generateSummary(ctx context.Context, role, content string) (string, error) 
 		return "", fmt.Errorf("failed to create llm client: %v", err)
 	}
 
-	res, err := llms.GenerateFromSinglePrompt(ctx, llm, buf.String())
+	res, err := llms.GenerateFromSinglePrompt(ctx, llm, prompt)
 	if err != nil {
 		return "", fmt.Errorf("error calling llm: %w", err)
 	}

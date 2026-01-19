@@ -289,7 +289,10 @@ func (a *Agent) buildUserContext(ctx context.Context, req request.ChatRequest, c
 	userContext.WriteString("User Context:\n")
 
 	if len(req.UploadedFiles) > 0 {
+		utils.SendSSEMessage(c, utils.EventParingUploadedFiles, nil)
 		content := handleChatFiles(ctx, req, email)
+		utils.SendSSEMessage(c, utils.EventParingUploadedFilesComplete, nil)
+
 		userContext.WriteString("Uploaded Files:\n")
 		userContext.WriteString(content + "\n\n")
 	}

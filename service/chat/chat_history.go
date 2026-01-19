@@ -106,7 +106,7 @@ func (h *MySQLChatMessageHistory) AddAIMessage(ctx context.Context, text string)
 
 func (h *MySQLChatMessageHistory) AddUserMessage(ctx context.Context, text string) error {
 	// 若用户在对话中上传文件，需要提取原始 query
-	re := regexp.MustCompile(`(?s)User Question:\s*(.*?)\s*\n\s*Context from uploaded files:.*`)
+	re := regexp.MustCompile(`(?s)User Question:\s*(.*?)\s*\n\s*User Context:.*`)
 	matches := re.FindStringSubmatch(text)
 
 	if len(matches) > 1 {

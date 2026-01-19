@@ -34,7 +34,7 @@ type DeleteUploadedFilesMessage struct {
 func handleChatFiles(ctx context.Context, req request.ChatRequest, email string) string {
 	var images, docs []string
 	for _, fileName := range req.UploadedFiles {
-		req := request.OSSAuthRequest{
+		ossAuthReq := request.OSSAuthRequest{
 			Namespace: ossauth.OSSKeyPrefixUpload,
 			Email:     email,
 			SessionID: req.SessionID,
@@ -43,7 +43,7 @@ func handleChatFiles(ctx context.Context, req request.ChatRequest, email string)
 
 		switch {
 		case supportImage(fileName):
-			url, err := ossauth.GeneratePresignedURL(req)
+			url, err := ossauth.GeneratePresignedURL(ossAuthReq)
 			if err != nil {
 				slog.Error("failed to generate presigned url",
 					"file_name", fileName,
@@ -54,7 +54,7 @@ func handleChatFiles(ctx context.Context, req request.ChatRequest, email string)
 			images = append(images, url)
 
 		case supportDoc(fileName):
-			objectName, err := ossauth.GenerateKey(req)
+			objectName, err := ossauth.GenerateKey(ossAuthReq)
 			if err != nil {
 				slog.Error("failed to generate oss key",
 					"file_name", fileName,

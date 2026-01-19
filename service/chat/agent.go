@@ -5,8 +5,10 @@ import (
 	"diabetes-agent-backend/config"
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/request"
+	knowledgebase "diabetes-agent-backend/service/knowledge-base"
 	"diabetes-agent-backend/utils"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -118,14 +120,9 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 }
 
 func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Context) error {
-	// 处理聊天文件
-	if len(req.UploadedFiles) > 0 {
-		email := c.GetString("email")
-		uploadedFilesContext := handleChatFiles(ctx, req, email)
-		req.Query = fmt.Sprintf(`
-			User Question: %s
-			Context from uploaded files:
-			%s`, req.Query, uploadedFilesContext)
+	// 引入上传文件和知识库检索结果
+	if len(req.UploadedFiles) > 0 || req.EnableKnowledgeBaseRetrieval {
+		req.Query = a.buildUserContext(ctx, req, c)
 	}
 
 	// 存储聊天信息的上下文，避免请求被取消时保存失败
@@ -281,4 +278,28 @@ func registerMCPNotificationHandler(ctx context.Context, mcpClient *client.Clien
 
 		sseHandler.HandleToolCallResult(ctx, toolCallResult)
 	})
+}
+
+func (a *Agent) buildUserContext(ctx context.Context, req request.ChatRequest, c *gin.Context) string {
+	email := c.GetString("email")
+
+	var userContext strings.Builder
+	userContext.WriteString("User Question:\n")
+	userContext.WriteString(req.Query + "\n\n")
+	userContext.WriteString("User Context:\n")
+
+	if len(req.UploadedFiles) > 0 {
+		content := handleChatFiles(ctx, req, email)
+		userContext.WriteString("Uploaded Files:\n")
+		userContext.WriteString(content + "\n\n")
+	}
+
+	if req.EnableKnowledgeBaseRetrieval {
+		docs, _ := knowledgebase.RetrieveSimilarDocuments(ctx, req.Query, email)
+		docsJSON, _ := json.Marshal(docs)
+		userContext.WriteString("Knowledge Base Retrieve Results:\n")
+		userContext.WriteString(string(docsJSON) + "\n\n")
+	}
+
+	return userContext.String()
 }

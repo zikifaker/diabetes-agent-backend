@@ -19,6 +19,6 @@ User query: "我最近血糖有点高，该怎么办？"
 Rewritten: "高血糖症状 治疗方法 血糖管理 糖尿病护理"
 
 Now rewrite the following query:
-{{ .query }}
+{{.query}}
 
 Please output only the rewritten query without any explanation or additional text.

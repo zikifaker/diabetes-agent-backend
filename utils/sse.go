@@ -21,6 +21,7 @@ func SetSSEHeaders(c *gin.Context) {
 }
 
 func SendSSEMessage(c *gin.Context, event string, data any) {
-	c.SSEvent(event, data)
+	// 使用 content 字段存储数据，便于前端解析
+	c.SSEvent(event, gin.H{"content": data})
 	c.Writer.Flush()
 }

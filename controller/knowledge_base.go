@@ -28,17 +28,8 @@ func GetKnowledgeMetadata(c *gin.Context) {
 		return
 	}
 
-	var resp response.GetKnowledgeMetadataResponse
-	for _, item := range metadata {
-		resp.Metadata = append(resp.Metadata, response.MetadataResponse{
-			FileName: item.FileName,
-			FileType: string(item.FileType),
-			FileSize: item.FileSize,
-		})
-	}
-
 	c.JSON(http.StatusOK, response.Response{
-		Data: resp,
+		Data: metadata,
 	})
 }
 
@@ -137,16 +128,7 @@ func SearchKnowledgeMetadata(c *gin.Context) {
 		return
 	}
 
-	var resp response.SearchKnowledgeMetadataResponse
-	for _, item := range metadata {
-		resp.Metadata = append(resp.Metadata, response.MetadataResponse{
-			FileName: item.FileName,
-			FileType: string(item.FileType),
-			FileSize: item.FileSize,
-		})
-	}
-
 	c.JSON(http.StatusOK, response.Response{
-		Data: resp,
+		Data: metadata,
 	})
 }

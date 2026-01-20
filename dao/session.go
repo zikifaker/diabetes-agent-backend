@@ -2,16 +2,17 @@ package dao
 
 import (
 	"diabetes-agent-backend/model"
+	"diabetes-agent-backend/response"
 )
 
-func GetSessionsByEmail(email string) ([]model.Session, error) {
-	var sessions []model.Session
-	if err := DB.Where("user_email = ?", email).
+func GetSessionsByEmail(email string) ([]response.SessionResponse, error) {
+	var sessions []response.SessionResponse
+	err := DB.Table("chat_session").
+		Select("session_id, title").
+		Where("user_email = ?", email).
 		Order("created_at DESC").
-		Find(&sessions).Error; err != nil {
-		return nil, err
-	}
-	return sessions, nil
+		Find(&sessions).Error
+	return sessions, err
 }
 
 func DeleteSession(email, sessionID string) error {
@@ -32,31 +33,25 @@ func DeleteSession(email, sessionID string) error {
 	return nil
 }
 
-func GetMessagesBySessionID(sessionID string) ([]model.Message, error) {
-	var messages []model.Message
-	if err := DB.Where("session_id = ?", sessionID).
+func GetMessagesBySessionID(sessionID string) ([]response.MessageResponse, error) {
+	var messages []response.MessageResponse
+	err := DB.Table("chat_message").
+		Select("created_at, role, content, intermediate_steps, tool_call_results, uploaded_files").
+		Where("session_id = ?", sessionID).
 		Order("created_at ASC").
-		Find(&messages).Error; err != nil {
-		return nil, err
-	}
-	return messages, nil
+		Find(&messages).Error
+	return messages, err
 }
 
 func GetMessageByID(messageID uint) (*model.Message, error) {
 	var message model.Message
-	if err := DB.Where("id = ?", messageID).
-		First(&message).Error; err != nil {
-		return nil, err
-	}
-	return &message, nil
+	err := DB.Where("id = ?", messageID).
+		First(&message).Error
+	return &message, err
 }
 
 func UpdateSessionTitle(email, sessionID, title string) error {
-	err := DB.Model(&model.Session{}).
+	return DB.Model(&model.Session{}).
 		Where("user_email = ? AND session_id = ?", email, sessionID).
 		Update("title", title).Error
-	if err != nil {
-		return err
-	}
-	return nil
 }

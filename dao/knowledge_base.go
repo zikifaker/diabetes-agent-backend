@@ -2,19 +2,20 @@ package dao
 
 import (
 	"diabetes-agent-backend/model"
+	"diabetes-agent-backend/response"
 	"errors"
 
 	"gorm.io/gorm"
 )
 
-func GetKnowledgeMetadataByEmail(email string) ([]model.KnowledgeMetadata, error) {
-	var fileMetadata []model.KnowledgeMetadata
-	if err := DB.Where("user_email = ?", email).
+func GetKnowledgeMetadataByEmail(email string) ([]response.MetadataResponse, error) {
+	var fileMetadata []response.MetadataResponse
+	err := DB.Table("knowledge_metadata").
+		Select("file_name, file_type, file_size").
+		Where("user_email = ?", email).
 		Order("created_at DESC").
-		Find(&fileMetadata).Error; err != nil {
-		return nil, err
-	}
-	return fileMetadata, nil
+		Find(&fileMetadata).Error
+	return fileMetadata, err
 }
 
 func GetKnowledgeMetadataByEmailAndFileName(email, fileName string) (*model.KnowledgeMetadata, error) {
@@ -40,17 +41,15 @@ func UpdateKnowledgeMetadataStatus(email, fileName string, status model.Status) 
 		Update("status", status).Error
 }
 
-func SearchKnowledgeMetadataByFullText(email, query string) ([]model.KnowledgeMetadata, error) {
-	var fileMetadata []model.KnowledgeMetadata
+func SearchKnowledgeMetadataByFullText(email, query string) ([]response.MetadataResponse, error) {
+	var fileMetadata []response.MetadataResponse
 
 	// 使用全文索引做左右模糊匹配
-	err := DB.Where("user_email = ? AND MATCH(file_name) AGAINST(? IN BOOLEAN MODE)", email, "*"+query+"*").
+	err := DB.Table("knowledge_metadata").
+		Select("file_name, file_type, file_size").
+		Where("user_email = ? AND MATCH(file_name) AGAINST(? IN BOOLEAN MODE)", email, "*"+query+"*").
 		Order("created_at DESC").
 		Find(&fileMetadata).Error
 
-	if err != nil {
-		return nil, err
-	}
-
-	return fileMetadata, nil
+	return fileMetadata, err
 }

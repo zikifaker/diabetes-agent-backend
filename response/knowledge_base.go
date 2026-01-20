@@ -18,14 +18,6 @@ type MetadataResponse struct {
 	FileSize int64  `json:"file_size"`
 }
 
-type GetKnowledgeMetadataResponse struct {
-	Metadata []MetadataResponse `json:"metadata"`
-}
-
 type GetPreSignedURLResponse struct {
 	URL string `json:"url"`
-}
-
-type SearchKnowledgeMetadataResponse struct {
-	Metadata []MetadataResponse `json:"metadata"`
 }

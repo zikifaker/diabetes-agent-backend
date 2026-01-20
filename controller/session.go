@@ -48,16 +48,8 @@ func GetSessions(c *gin.Context) {
 		return
 	}
 
-	var resp response.GetSessionsResponse
-	for _, s := range sessions {
-		resp.Sessions = append(resp.Sessions, response.SessionResponse{
-			SessionID: s.SessionID,
-			Title:     s.Title,
-		})
-	}
-
 	c.JSON(http.StatusOK, response.Response{
-		Data: resp,
+		Data: sessions,
 	})
 }
 
@@ -99,20 +91,8 @@ func GetSessionMessages(c *gin.Context) {
 		return
 	}
 
-	var resp response.GetSessionMessagesResponse
-	for _, m := range messages {
-		resp.Messages = append(resp.Messages, response.MessageResponse{
-			CreatedAt:         m.CreatedAt,
-			Role:              m.Role,
-			Content:           m.Content,
-			IntermediateSteps: m.IntermediateSteps,
-			ToolCallResults:   m.ToolCallResults,
-			UploadedFiles:     m.UploadedFiles,
-		})
-	}
-
 	c.JSON(http.StatusOK, response.Response{
-		Data: resp,
+		Data: messages,
 	})
 }
 

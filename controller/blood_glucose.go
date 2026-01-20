@@ -85,16 +85,7 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 		return
 	}
 
-	var resp response.GetBloodGlucoseRecordsResponse
-	for _, record := range records {
-		resp.Records = append(resp.Records, response.BloodGlucoseRecordResponse{
-			Value:        record.Value,
-			MeasuredAt:   record.MeasuredAt,
-			DiningStatus: record.DiningStatus,
-		})
-	}
-
 	c.JSON(http.StatusOK, response.Response{
-		Data: resp,
+		Data: records,
 	})
 }

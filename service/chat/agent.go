@@ -289,19 +289,24 @@ func (a *Agent) buildUserContext(ctx context.Context, req request.ChatRequest, c
 	userContext.WriteString("User Context:\n")
 
 	if len(req.UploadedFiles) > 0 {
-		utils.SendSSEMessage(c, utils.EventParingUploadedFiles, nil)
-		content := handleChatFiles(ctx, req, email)
-		utils.SendSSEMessage(c, utils.EventParingUploadedFilesComplete, nil)
+		utils.SendSSEMessage(c, utils.EventFileParseStart, nil)
 
+		content := handleChatFiles(ctx, req, email)
 		userContext.WriteString("Uploaded Files:\n")
 		userContext.WriteString(content + "\n\n")
+
+		utils.SendSSEMessage(c, utils.EventFileParseDone, nil)
 	}
 
 	if req.EnableKnowledgeBaseRetrieval {
+		utils.SendSSEMessage(c, utils.EventKBRetrievalStart, nil)
+
 		docs, _ := knowledgebase.RetrieveSimilarDocuments(ctx, req.Query, email)
 		docsJSON, _ := json.Marshal(docs)
 		userContext.WriteString("Knowledge Base Retrieve Results:\n")
 		userContext.WriteString(string(docsJSON) + "\n\n")
+
+		utils.SendSSEMessage(c, utils.EventKBRetrievalDone, nil)
 	}
 
 	return userContext.String()

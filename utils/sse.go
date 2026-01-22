@@ -14,6 +14,10 @@ const (
 	EventDone              = "done"
 )
 
+type Message struct {
+	Content any `json:"content"`
+}
+
 func SetSSEHeaders(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
@@ -24,6 +28,6 @@ func SetSSEHeaders(c *gin.Context) {
 
 func SendSSEMessage(c *gin.Context, event string, data any) {
 	// 使用 content 字段存储数据，便于前端解析
-	c.SSEvent(event, gin.H{"content": data})
+	c.SSEvent(event, Message{Content: data})
 	c.Writer.Flush()
 }

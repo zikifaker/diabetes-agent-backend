@@ -55,6 +55,8 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, response.Response{})
+
 	mq.SendMessage(c.Request.Context(), &mq.Message{
 		Topic: mq.TopicKnowledgeBase,
 		Tag:   mq.TagETL,
@@ -63,8 +65,6 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 			ObjectName: req.ObjectName,
 		},
 	})
-
-	c.JSON(http.StatusOK, response.Response{})
 }
 
 // DeleteKnowledgeMetadata 删除知识文件元数据和 OSS 上的文件，向 MQ 发送删除任务
@@ -96,6 +96,8 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 	extension := filepath.Ext(fileName)
 	fileType := strings.TrimPrefix(extension, ".")
 
+	c.JSON(http.StatusOK, response.Response{})
+
 	mq.SendMessage(c.Request.Context(), &mq.Message{
 		Topic: mq.TopicKnowledgeBase,
 		Tag:   mq.TagDelete,
@@ -104,8 +106,6 @@ func DeleteKnowledgeMetadata(c *gin.Context) {
 			ObjectName: objectName,
 		},
 	})
-
-	c.JSON(http.StatusOK, response.Response{})
 }
 
 func SearchKnowledgeMetadata(c *gin.Context) {

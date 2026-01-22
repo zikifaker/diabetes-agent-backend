@@ -7,6 +7,7 @@ import (
 	"diabetes-agent-backend/utils"
 	_ "embed"
 	"fmt"
+	"log/slog"
 
 	"github.com/milvus-io/milvus/client/v2/column"
 	"github.com/milvus-io/milvus/client/v2/entity"
@@ -19,12 +20,13 @@ import (
 
 const (
 	baseURL            = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+	llmName            = "qwen-plus"
 	embeddingModelName = "text-embedding-v4"
 	collectionName     = "knowledge_doc"
 	limit              = 20
 )
 
-var client *openai.LLM
+var modelClient *openai.LLM
 
 //go:embed prompts/rewrite_query.txt
 var rewriteQueryPrompt string
@@ -36,31 +38,35 @@ type VectorDBSearchResult struct {
 
 func init() {
 	var err error
-	client, err = openai.New(
+	modelClient, err = openai.New(
+		openai.WithModel(llmName),
 		openai.WithEmbeddingModel(embeddingModelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
 		openai.WithBaseURL(baseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to create llm client: %v", err))
+		panic(fmt.Sprintf("Failed to create model client: %v", err))
 	}
 }
 
-func RetrieveSimilarDocuments(ctx context.Context, query, userEmail string) ([]VectorDBSearchResult, error) {
+func RetrieveSimilarDocuments(ctx context.Context, query, userEmail string) []VectorDBSearchResult {
 	rewrittenQuery, err := rewriteQuery(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("error rewriting query: %v", err)
+		slog.Error("error rewriting query", "err", err)
+		return nil
 	}
 
-	embedder, err := embeddings.NewEmbedder(client)
+	embedder, err := embeddings.NewEmbedder(modelClient)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to create embedder: %v", err))
+		slog.Error("failed to create embedder", "err", err)
+		return nil
 	}
 
 	vector, err := embedder.EmbedQuery(ctx, rewrittenQuery)
 	if err != nil {
-		return nil, fmt.Errorf("error embedding query: %v", err)
+		slog.Error("error embedding query", "err", err)
+		return nil
 	}
 
 	searchOption := milvusclient.NewSearchOption(collectionName, limit, []entity.Vector{entity.FloatVector(vector)}).
@@ -69,7 +75,8 @@ func RetrieveSimilarDocuments(ctx context.Context, query, userEmail string) ([]V
 
 	resultSets, err := dao.MilvusClient.Search(ctx, searchOption)
 	if err != nil {
-		return nil, fmt.Errorf("error searching vector store: %v", err)
+		slog.Error("error searching vector stor", "err", err)
+		return nil
 	}
 
 	structedResults := make([]VectorDBSearchResult, 0)
@@ -91,7 +98,7 @@ func RetrieveSimilarDocuments(ctx context.Context, query, userEmail string) ([]V
 		}
 	}
 
-	return structedResults, nil
+	return structedResults
 }
 
 func rewriteQuery(ctx context.Context, query string) (string, error) {
@@ -101,7 +108,7 @@ func rewriteQuery(ctx context.Context, query string) (string, error) {
 		return "", err
 	}
 
-	result, err := llms.GenerateFromSinglePrompt(ctx, client, prompt)
+	result, err := llms.GenerateFromSinglePrompt(ctx, modelClient, prompt)
 	if err != nil {
 		return "", err
 	}

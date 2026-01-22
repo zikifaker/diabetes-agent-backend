@@ -301,7 +301,7 @@ func (a *Agent) buildUserContext(ctx context.Context, req request.ChatRequest, c
 	if req.EnableKnowledgeBaseRetrieval {
 		utils.SendSSEMessage(c, utils.EventKBRetrievalStart, nil)
 
-		docs, _ := knowledgebase.RetrieveSimilarDocuments(ctx, req.Query, email)
+		docs := knowledgebase.RetrieveSimilarDocuments(ctx, req.Query, email)
 		docsJSON, _ := json.Marshal(docs)
 		userContext.WriteString("Knowledge Base Retrieve Results:\n")
 		userContext.WriteString(string(docsJSON) + "\n\n")

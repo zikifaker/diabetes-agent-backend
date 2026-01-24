@@ -5,5 +5,5 @@ type Response struct {
 	Msg string `json:"msg"`
 
 	// 业务数据
-	Data interface{} `json:"data"`
+	Data any `json:"data"`
 }

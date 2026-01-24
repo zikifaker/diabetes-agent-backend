@@ -3,15 +3,14 @@ package knowledgebase
 import (
 	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
 	"fmt"
 	"log/slog"
 	"strings"
 )
 
-func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email string) error {
+func UploadKnowledgeMetadata(metadata model.KnowledgeMetadata) error {
 	// 检查文件是否已经上传过
-	exists, err := dao.GetKnowledgeMetadataByEmailAndFileName(email, req.FileName)
+	exists, err := dao.GetKnowledgeMetadataByEmailAndFileName(metadata.UserEmail, metadata.FileName)
 	if err != nil {
 		return fmt.Errorf("failed to get knowledge metadata: %v", err)
 	}
@@ -19,15 +18,7 @@ func UploadKnowledgeMetadata(req request.UploadKnowledgeMetadataRequest, email s
 		return fmt.Errorf("file already exists")
 	}
 
-	record := model.KnowledgeMetadata{
-		UserEmail:  email,
-		FileName:   req.FileName,
-		FileType:   model.FileType(req.FileType),
-		FileSize:   req.FileSize,
-		ObjectName: req.ObjectName,
-		Status:     model.StatusUploaded,
-	}
-	if err := dao.DB.Create(&record).Error; err != nil {
+	if err := dao.DB.Create(&metadata).Error; err != nil {
 		return fmt.Errorf("failed to save knowledge metadata: %v", err)
 	}
 

@@ -42,6 +42,10 @@ func Register() *gin.Engine {
 
 			protected.POST("/blood-glucose/record", controller.CreateBloodGlucoseRecord)
 			protected.GET("/blood-glucose/records", controller.GetBloodGlucoseRecords)
+
+			protected.GET("/health-profile", controller.GetHealthProfile)
+			protected.POST("/health-profile", controller.CreateHealthProfile)
+			protected.PUT("/health-profile", controller.UpdateHealthProfile)
 		}
 	}
 

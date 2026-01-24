@@ -50,7 +50,7 @@ func init() {
 	}
 }
 
-func RetrieveSimilarDocuments(ctx context.Context, query, userEmail string) []VectorDBSearchResult {
+func RetrieveSimilarDocuments(ctx context.Context, query, email string) []VectorDBSearchResult {
 	rewrittenQuery, err := rewriteQuery(ctx, query)
 	if err != nil {
 		slog.Error("error rewriting query", "err", err)
@@ -71,7 +71,7 @@ func RetrieveSimilarDocuments(ctx context.Context, query, userEmail string) []Ve
 
 	searchOption := milvusclient.NewSearchOption(collectionName, limit, []entity.Vector{entity.FloatVector(vector)}).
 		WithOutputFields("text").
-		WithFilter("user_email == '" + userEmail + "'")
+		WithFilter("user_email == '" + email + "'")
 
 	resultSets, err := dao.MilvusClient.Search(ctx, searchOption)
 	if err != nil {

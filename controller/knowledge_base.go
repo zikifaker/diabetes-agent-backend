@@ -46,7 +46,14 @@ func UploadKnowledgeMetadata(c *gin.Context) {
 	}
 
 	email := c.GetString("email")
-	err := knowledgebase.UploadKnowledgeMetadata(req, email)
+	err := knowledgebase.UploadKnowledgeMetadata(model.KnowledgeMetadata{
+		UserEmail:  email,
+		FileName:   req.FileName,
+		FileType:   model.FileType(req.FileType),
+		FileSize:   req.FileSize,
+		ObjectName: req.ObjectName,
+		Status:     model.StatusUploaded,
+	})
 	if err != nil {
 		slog.Error(ErrUploadKnowledgeMetadata.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{

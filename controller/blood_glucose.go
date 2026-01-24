@@ -36,6 +36,8 @@ func CreateBloodGlucoseRecord(c *gin.Context) {
 		})
 		return
 	}
+
+	c.JSON(http.StatusCreated, response.Response{})
 }
 
 func GetBloodGlucoseRecords(c *gin.Context) {

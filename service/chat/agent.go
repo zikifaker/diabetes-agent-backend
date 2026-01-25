@@ -306,6 +306,7 @@ func (a *Agent) buildUserContext(ctx context.Context, req request.ChatRequest, c
 		userContext.WriteString("Knowledge Base Retrieve Results:\n")
 		userContext.WriteString(string(docsJSON) + "\n\n")
 
+		utils.SendSSEMessage(c, utils.EventKBRetrievalChunkNum, len(docs))
 		utils.SendSSEMessage(c, utils.EventKBRetrievalDone, nil)
 	}
 

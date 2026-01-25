@@ -23,6 +23,7 @@ const (
 	llmName            = "qwen-plus"
 	embeddingModelName = "text-embedding-v4"
 	collectionName     = "knowledge_doc"
+	scoreThreshold     = 0.75
 	limit              = 20
 )
 
@@ -90,7 +91,9 @@ func RetrieveSimilarDocuments(ctx context.Context, query, email string) []Vector
 					}
 				}
 			}
-
+			if resSet.Scores[i] < scoreThreshold {
+				continue
+			}
 			structedResults = append(structedResults, VectorDBSearchResult{
 				Chunk: text,
 				Score: resSet.Scores[i],

@@ -3,15 +3,16 @@ package utils
 import "github.com/gin-gonic/gin"
 
 const (
-	EventFileParseStart    = "file_parse_start"
-	EventFileParseDone     = "file_parse_done"
-	EventKBRetrievalStart  = "kb_retrieval_start"
-	EventKBRetrievalDone   = "kb_retrieval_done"
-	EventIntermediateSteps = "intermediate_steps"
-	EventFinalAnswer       = "final_answer"
-	EventToolCallResult    = "tool_call_results"
-	EventError             = "error"
-	EventDone              = "done"
+	EventFileParseStart      = "file_parse_start"
+	EventFileParseDone       = "file_parse_done"
+	EventKBRetrievalStart    = "kb_retrieval_start"
+	EventKBRetrievalDone     = "kb_retrieval_done"
+	EventKBRetrievalChunkNum = "kb_retrieval_chunk_num"
+	EventIntermediateSteps   = "intermediate_steps"
+	EventFinalAnswer         = "final_answer"
+	EventToolCallResult      = "tool_call_results"
+	EventError               = "error"
+	EventDone                = "done"
 )
 
 type Message struct {

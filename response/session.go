@@ -15,6 +15,6 @@ type MessageResponse struct {
 	Role              string                 `json:"role"`
 	Content           string                 `json:"content"`
 	IntermediateSteps string                 `json:"intermediate_steps"`
-	ToolCallResults   []model.ToolCallResult `gorm:"type:json;serializer:json" json:"tool_call_results"`
-	UploadedFiles     []string               `gorm:"type:json;serializer:json" json:"uploaded_files"`
+	ToolCallResults   []model.ToolCallResult `json:"tool_call_results"`
+	UploadedFiles     []string               `json:"uploaded_files"`
 }

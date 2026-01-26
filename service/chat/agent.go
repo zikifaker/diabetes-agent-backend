@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"diabetes-agent-backend/config"
+	"diabetes-agent-backend/dao"
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/request"
 	knowledgebase "diabetes-agent-backend/service/knowledge-base"
@@ -22,7 +23,6 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"
-	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/memory"
 	"github.com/tmc/langchaingo/tools"
@@ -157,17 +157,39 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 		}
 	}
 
-	if err := a.ChatHistory.UpdateFields(saveCtx, llms.ChatMessageTypeHuman, &model.Message{
-		UploadedFiles: req.UploadedFiles,
-	}); err != nil {
-		slog.Error("Failed to update user message", "err", err)
+	interMediateSteps := a.SSEHandler.IntermediateSteps.String()
+	if interMediateSteps != "" {
+		err := dao.DB.Create(&model.InterMediateSteps{
+			MessageID: a.ChatHistory.AgentMessageID,
+			SessionID: req.SessionID,
+			Content:   interMediateSteps,
+		}).Error
+		if err != nil {
+			slog.Error("Failed to save intermediate steps", "err", err)
+		}
 	}
 
-	if err := a.ChatHistory.UpdateFields(saveCtx, llms.ChatMessageTypeAI, &model.Message{
-		IntermediateSteps: a.SSEHandler.IntermediateSteps.String(),
-		ToolCallResults:   a.SSEHandler.ToolCallResults,
-	}); err != nil {
-		slog.Error("Failed to update agent message", "err", err)
+	toolCallResults := a.SSEHandler.ToolCallResults
+	if len(toolCallResults) > 0 {
+		err := dao.DB.Create(&model.ToolCallResults{
+			MessageID: a.ChatHistory.AgentMessageID,
+			SessionID: req.SessionID,
+			Content:   toolCallResults,
+		}).Error
+		if err != nil {
+			slog.Error("Failed to save tool call results", "err", err)
+		}
+	}
+
+	if len(req.UploadedFiles) > 0 {
+		err := dao.SaveChatUploadedFiles(
+			req.UploadedFiles,
+			a.ChatHistory.UserMessageID,
+			req.SessionID,
+		)
+		if err != nil {
+			slog.Error("Failed to save chat uploaded files", "err", err)
+		}
 	}
 
 	return nil

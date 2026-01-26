@@ -191,22 +191,3 @@ func (h *MySQLChatMessageHistory) SetMessages(ctx context.Context, messages []ll
 		return nil
 	})
 }
-
-func (h *MySQLChatMessageHistory) UpdateFields(ctx context.Context, role llms.ChatMessageType, msg *model.Message) error {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
-	var id uint
-	switch role {
-	case llms.ChatMessageTypeAI:
-		id = h.AgentMessageID
-	case llms.ChatMessageTypeHuman:
-		id = h.UserMessageID
-	}
-
-	return h.DB.WithContext(ctx).
-		Table(h.TableName).
-		Where("id = ?", id).
-		Updates(msg).Error
-}

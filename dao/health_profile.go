@@ -10,8 +10,8 @@ import (
 
 func GetHealthProfile(email string) (*response.GetHealthProfileResponse, error) {
 	var profile response.GetHealthProfileResponse
-	err := DB.Table("health_profile").
-		Select("diabetes_type, medication, complications").
+	err := DB.Model(&model.HealthProfile{}).
+		Select("gender, age, height, weight, dietary_preference, smoking_status, activity_level, diabetes_type, diagnosis_year, therapy_mode, medication, allergies, complications").
 		Where("user_email = ?", email).
 		First(&profile).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {

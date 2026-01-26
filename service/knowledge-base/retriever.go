@@ -23,7 +23,7 @@ const (
 	llmName            = "qwen-plus"
 	embeddingModelName = "text-embedding-v4"
 	collectionName     = "knowledge_doc"
-	scoreThreshold     = 0.75
+	scoreThreshold     = 0.5
 	limit              = 20
 )
 

@@ -10,7 +10,7 @@ import (
 
 func GetKnowledgeMetadataByEmail(email string) ([]response.MetadataResponse, error) {
 	var fileMetadata []response.MetadataResponse
-	err := DB.Table("knowledge_metadata").
+	err := DB.Model(&model.KnowledgeMetadata{}).
 		Select("file_name, file_type, file_size").
 		Where("user_email = ?", email).
 		Order("created_at DESC").
@@ -45,7 +45,7 @@ func SearchKnowledgeMetadataByFullText(email, query string) ([]response.Metadata
 	var fileMetadata []response.MetadataResponse
 
 	// 使用全文索引做左右模糊匹配
-	err := DB.Table("knowledge_metadata").
+	err := DB.Model(&model.KnowledgeMetadata{}).
 		Select("file_name, file_type, file_size").
 		Where("user_email = ? AND MATCH(file_name) AGAINST(? IN BOOLEAN MODE)", email, "*"+query+"*").
 		Order("created_at DESC").

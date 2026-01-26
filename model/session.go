@@ -10,7 +10,7 @@ type Session struct {
 	ID        uint      `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	UserEmail string    `gorm:"not null;index" json:"user_email"`
+	UserEmail string    `gorm:"not null;index:idx_email" json:"user_email"`
 	SessionID string    `gorm:"not null" json:"session_id"`
 	Title     string    `json:"title"`
 }

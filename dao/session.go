@@ -7,7 +7,7 @@ import (
 
 func GetSessionsByEmail(email string) ([]response.SessionResponse, error) {
 	var sessions []response.SessionResponse
-	err := DB.Table("chat_session").
+	err := DB.Model(&model.Session{}).
 		Select("session_id, title").
 		Where("user_email = ?", email).
 		Order("created_at DESC").
@@ -35,7 +35,7 @@ func DeleteSession(email, sessionID string) error {
 
 func GetMessagesBySessionID(sessionID string) ([]response.MessageResponse, error) {
 	var messages []response.MessageResponse
-	err := DB.Table("chat_message").
+	err := DB.Model(&model.Message{}).
 		Select("created_at, role, content, intermediate_steps, tool_call_results, uploaded_files").
 		Where("session_id = ?", sessionID).
 		Order("created_at ASC").

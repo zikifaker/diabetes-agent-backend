@@ -39,7 +39,7 @@ type HealthReport struct {
 	UserEmail  string    `gorm:"not null;index:idx_email_start_at" json:"user_email"`
 	StartAt    time.Time `gorm:"not null;index:idx_email_start_at" json:"start_at"`
 	EndAt      time.Time `gorm:"not null" json:"end_at"`
-	ReportType string    `gorm:"not null type:enum('weekly','monthly','yearly')" json:"report_type"`
+	ReportType string    `gorm:"not null;type:enum('weekly','monthly','yearly')" json:"report_type"`
 	Content    string    `gorm:"type:text" json:"content"`
 }
 

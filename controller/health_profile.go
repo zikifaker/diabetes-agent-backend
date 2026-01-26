@@ -13,7 +13,7 @@ import (
 )
 
 func CreateHealthProfile(c *gin.Context) {
-	var req request.CreateHealthProfileRequest
+	var req request.HealthProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		slog.Error(ErrParseRequest.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -23,12 +23,7 @@ func CreateHealthProfile(c *gin.Context) {
 	}
 
 	email := c.GetString("email")
-	profile := model.HealthProfile{
-		UserEmail:     email,
-		DiabetesType:  req.DiabetesType,
-		Medication:    req.Medication,
-		Complications: req.Complications,
-	}
+	profile := convertRequestToModel(req, email)
 	if err := dao.DB.Create(&profile).Error; err != nil {
 		slog.Error(ErrCreateHealthProfile.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -56,7 +51,7 @@ func GetHealthProfile(c *gin.Context) {
 }
 
 func UpdateHealthProfile(c *gin.Context) {
-	var req request.UpdateHealthProfileRequest
+	var req request.HealthProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		slog.Error(ErrParseRequest.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -66,12 +61,8 @@ func UpdateHealthProfile(c *gin.Context) {
 	}
 
 	email := c.GetString("email")
-	err := dao.UpdateHealthProfile(model.HealthProfile{
-		UserEmail:     email,
-		DiabetesType:  req.DiabetesType,
-		Medication:    req.Medication,
-		Complications: req.Complications,
-	})
+	profile := convertRequestToModel(req, email)
+	err := dao.UpdateHealthProfile(profile)
 	if err != nil {
 		slog.Error(ErrUpdateHealthProfile.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -81,4 +72,23 @@ func UpdateHealthProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Response{})
+}
+
+func convertRequestToModel(req request.HealthProfileRequest, email string) model.HealthProfile {
+	return model.HealthProfile{
+		UserEmail:         email,
+		Gender:            req.Gender,
+		Age:               req.Age,
+		Height:            req.Height,
+		Weight:            req.Weight,
+		DietaryPreference: req.DietaryPreference,
+		SmokingStatus:     req.SmokingStatus,
+		ActivityLevel:     req.ActivityLevel,
+		DiabetesType:      req.DiabetesType,
+		DiagnosisYear:     req.DiagnosisYear,
+		TherapyMode:       req.TherapyMode,
+		Medication:        req.Medication,
+		Allergies:         req.Allergies,
+		Complications:     req.Complications,
+	}
 }

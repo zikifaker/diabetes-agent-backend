@@ -2,22 +2,6 @@ package model
 
 import "time"
 
-const (
-	DiningStatusFasting         = "fasting"
-	DiningStatusBeforeBreakfast = "before_breakfast"
-	DiningStatusAfterBreakfast  = "after_breakfast"
-	DiningStatusBeforeLunch     = "before_lunch"
-	DiningStatusAfterLunch      = "after_lunch"
-	DiningStatusBeforeDinner    = "before_dinner"
-	DiningStatusAfterDinner     = "after_dinner"
-	DiningStatusBedtime         = "bedtime"
-	DiningStatusRandom          = "random"
-
-	ReportTypeWeekly  = "weekly"
-	ReportTypeMonthly = "monthly"
-	ReportTypeYearly  = "yearly"
-)
-
 type BloodGlucoseRecord struct {
 	ID           uint      `gorm:"primarykey" json:"id"`
 	CreatedAt    time.Time `gorm:"not null" json:"created_at"`
@@ -30,19 +14,4 @@ type BloodGlucoseRecord struct {
 
 func (BloodGlucoseRecord) TableName() string {
 	return "blood_glucose_record"
-}
-
-type HealthReport struct {
-	ID         uint      `gorm:"primarykey" json:"id"`
-	CreatedAt  time.Time `gorm:"not null" json:"created_at"`
-	UpdatedAt  time.Time `gorm:"not null" json:"updated_at"`
-	UserEmail  string    `gorm:"not null;index:idx_email_start_at" json:"user_email"`
-	StartAt    time.Time `gorm:"not null;index:idx_email_start_at" json:"start_at"`
-	EndAt      time.Time `gorm:"not null" json:"end_at"`
-	ReportType string    `gorm:"not null;type:enum('weekly','monthly','yearly')" json:"report_type"`
-	Content    string    `gorm:"type:text" json:"content"`
-}
-
-func (HealthReport) TableName() string {
-	return "health_report"
 }

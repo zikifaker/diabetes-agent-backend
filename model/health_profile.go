@@ -2,14 +2,6 @@ package model
 
 import "time"
 
-const (
-	DiabetesTypeType1       = "type1"
-	DiabetesTypeType2       = "type2"
-	DiabetesTypeGestational = "gestational"
-	DiabetesTypeOther       = "other"
-	DiabetesTypeNone        = "none"
-)
-
 type HealthProfile struct {
 	ID        uint      `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time `gorm:"not null" json:"created_at"`

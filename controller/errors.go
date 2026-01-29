@@ -31,10 +31,11 @@ var (
 
 	ErrCreateBloodGlucoseRecord = errors.New("failed to create blood glucose record")
 	ErrGetBloodGlucoseRecords   = errors.New("failed to get blood glucose records")
-	ErrUnableToParseTime        = errors.New("unable to parse time")
-	ErrInvalidDateRange         = errors.New("invalid date range")
 
 	ErrGetHealthProfile    = errors.New("failed to get health profile")
 	ErrCreateHealthProfile = errors.New("failed to create health profile")
 	ErrUpdateHealthProfile = errors.New("failed to update health profile")
+
+	ErrCreateExerciseRecord = errors.New("failed to create exercise record")
+	ErrGetExerciseRecords   = errors.New("failed to get exercise records")
 )

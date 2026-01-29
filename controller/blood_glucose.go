@@ -5,9 +5,9 @@ import (
 	"diabetes-agent-backend/model"
 	"diabetes-agent-backend/request"
 	"diabetes-agent-backend/response"
+	"diabetes-agent-backend/utils"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,35 +45,13 @@ func GetBloodGlucoseRecords(c *gin.Context) {
 	startStr := c.Query("start")
 	endStr := c.Query("end")
 
-	loc, _ := time.LoadLocation("UTC")
-	start, err := time.ParseInLocation(time.RFC3339, startStr, loc)
+	start, end, err := utils.ValidateTimeRange(startStr, endStr, "UTC")
 	if err != nil {
-		slog.Error(ErrUnableToParseTime.Error(),
-			"start", startStr,
-			"err", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Msg: ErrUnableToParseTime.Error(),
-		})
-		return
-	}
-
-	end, err := time.ParseInLocation(time.RFC3339, endStr, loc)
-	if err != nil {
-		slog.Error(ErrUnableToParseTime.Error(),
-			"end", endStr,
-			"err", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Msg: ErrUnableToParseTime.Error(),
-		})
-		return
-	}
-
-	if start.After(end) {
-		slog.Error(ErrInvalidDateRange.Error(),
+		slog.Error(err.Error(),
 			"start", startStr,
 			"end", endStr)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Msg: ErrInvalidDateRange.Error(),
+			Msg: err.Error(),
 		})
 		return
 	}

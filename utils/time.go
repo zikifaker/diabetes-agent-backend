@@ -10,8 +10,7 @@ var (
 	ErrInvalidDateRange  = errors.New("start time must be before end time")
 )
 
-// ParseAndValidateTimeRange 解析并验证时间范围
-func ParseAndValidateTimeRange(startStr, endStr, timezone string) (start, end time.Time, err error) {
+func ValidateTimeRange(startStr, endStr, timezone string) (start, end time.Time, err error) {
 	loc, err := time.LoadLocation(timezone)
 	if err != nil {
 		return time.Time{}, time.Time{}, err

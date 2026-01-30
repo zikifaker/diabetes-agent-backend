@@ -3,6 +3,7 @@ package response
 import "time"
 
 type GetExerciseRecordsResponse struct {
+	ID          uint      `json:"id"`
 	Type        string    `json:"type"`
 	Name        string    `json:"name"`
 	Intensity   string    `json:"intensity"`

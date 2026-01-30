@@ -10,11 +10,11 @@ type ExerciseRecord struct {
 	UpdatedAt   time.Time `gorm:"not null" json:"updated_at"`
 	UserEmail   string    `gorm:"not null;index:idx_email_start_at" json:"user_email"`
 	Type        string    `gorm:"not null;type:enum('aerobic', 'strength', 'flexibility', 'other')" json:"type"`
-	Name        string    `json:"name"`
+	Name        string    `gorm:"not null" json:"name"`
 	Intensity   string    `gorm:"not null;type:enum('low', 'medium', 'high')" json:"intensity"`
-	StartAt     time.Time `gorm:"index:idx_email_start_at" json:"start_at"`
-	EndAt       time.Time `json:"end_at"`
-	Duration    int       `json:"duration"`
+	StartAt     time.Time `gorm:"not null;index:idx_email_start_at" json:"start_at"`
+	EndAt       time.Time `gorm:"not null" json:"end_at"`
+	Duration    int       `gorm:"not null" json:"duration"`
 	PreGlucose  float32   `json:"pre_glucose"`
 	PostGlucose float32   `json:"post_glucose"`
 	Notes       string    `json:"notes"`

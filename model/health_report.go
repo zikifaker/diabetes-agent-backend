@@ -2,12 +2,6 @@ package model
 
 import "time"
 
-const (
-	ReportTypeWeekly  = "weekly"
-	ReportTypeMonthly = "monthly"
-	ReportTypeYearly  = "yearly"
-)
-
 type HealthReport struct {
 	ID         uint      `gorm:"primarykey" json:"id"`
 	CreatedAt  time.Time `gorm:"not null" json:"created_at"`

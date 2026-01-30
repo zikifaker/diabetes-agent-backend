@@ -65,7 +65,7 @@ func CreateExerciseRecord(c *gin.Context) {
 		PostGlucose: req.PostGlucose,
 		Notes:       req.Notes,
 	}
-	if err := dao.DB.Create(&exercise); err != nil {
+	if err := dao.DB.Create(&exercise).Error; err != nil {
 		slog.Error(ErrCreateExerciseRecord.Error(), "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 			Msg: ErrCreateExerciseRecord.Error(),

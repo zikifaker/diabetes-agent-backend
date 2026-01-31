@@ -15,3 +15,8 @@ func GetExerciseRecords(email string, start, end time.Time) ([]response.GetExerc
 		Find(&records).Error
 	return records, err
 }
+
+func DeleteExerciseRecord(id uint) error {
+	return DB.Where("id = ?", id).
+		Delete(&model.ExerciseRecord{}).Error
+}

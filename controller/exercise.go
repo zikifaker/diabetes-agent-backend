@@ -8,6 +8,7 @@ import (
 	"diabetes-agent-backend/utils"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -74,4 +75,19 @@ func CreateExerciseRecord(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, response.Response{})
+}
+
+func DeleteExerciseRecord(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+
+	if err := dao.DeleteExerciseRecord(uint(id)); err != nil {
+		slog.Error(ErrDeleteExerciseRecord.Error(), "err", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Msg: ErrDeleteExerciseRecord.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{})
 }

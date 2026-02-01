@@ -1,7 +1,7 @@
 package response
 
 import (
-	"diabetes-agent-backend/model"
+	"diabetes-agent-server/model"
 	"time"
 )
 

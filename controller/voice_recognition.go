@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"diabetes-agent-backend/response"
-	vr "diabetes-agent-backend/service/voice-recognition"
+	"diabetes-agent-server/response"
+	vr "diabetes-agent-server/service/voice-recognition"
 	"log/slog"
 	"net/http"
 

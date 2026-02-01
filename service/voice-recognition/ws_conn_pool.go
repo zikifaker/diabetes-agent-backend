@@ -1,7 +1,7 @@
 package voicerecognition
 
 import (
-	"diabetes-agent-backend/config"
+	"diabetes-agent-server/config"
 	"fmt"
 	"net/http"
 	"time"

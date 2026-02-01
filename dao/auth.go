@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"diabetes-agent-backend/model"
+	"diabetes-agent-server/model"
 	"errors"
 
 	"gorm.io/gorm"

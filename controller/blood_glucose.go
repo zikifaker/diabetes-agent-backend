@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
-	"diabetes-agent-backend/response"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/request"
+	"diabetes-agent-server/response"
+	"diabetes-agent-server/utils"
 	"log/slog"
 	"net/http"
 

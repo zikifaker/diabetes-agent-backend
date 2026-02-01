@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
-	"diabetes-agent-backend/config"
+	"diabetes-agent-server/config"
 	"encoding/json"
 	"io"
 	"log/slog"

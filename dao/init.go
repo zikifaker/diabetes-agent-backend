@@ -2,7 +2,7 @@ package dao
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
+	"diabetes-agent-server/config"
 	"fmt"
 
 	"github.com/milvus-io/milvus/client/v2/milvusclient"

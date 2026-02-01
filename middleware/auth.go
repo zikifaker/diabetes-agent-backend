@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"diabetes-agent-backend/config"
+	"diabetes-agent-server/config"
 	"log/slog"
 	"net/http"
 	"strings"

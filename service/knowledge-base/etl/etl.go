@@ -2,10 +2,10 @@ package etl
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/service/knowledge-base/etl/processor"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/service/knowledge-base/etl/processor"
+	"diabetes-agent-server/utils"
 	"encoding/json"
 	"fmt"
 	"io"

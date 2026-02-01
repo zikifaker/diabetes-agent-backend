@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"diabetes-agent-backend/middleware"
-	"diabetes-agent-backend/request"
-	"diabetes-agent-backend/response"
-	"diabetes-agent-backend/service/auth"
+	"diabetes-agent-server/middleware"
+	"diabetes-agent-server/request"
+	"diabetes-agent-server/response"
+	"diabetes-agent-server/service/auth"
 	"log/slog"
 	"net/http"
 

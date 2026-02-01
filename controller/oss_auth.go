@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"diabetes-agent-backend/request"
-	"diabetes-agent-backend/response"
-	ossauth "diabetes-agent-backend/service/oss-auth"
+	"diabetes-agent-server/request"
+	"diabetes-agent-server/response"
+	ossauth "diabetes-agent-server/service/oss-auth"
 	"log/slog"
 	"net/http"
 

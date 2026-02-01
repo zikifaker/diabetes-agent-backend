@@ -2,12 +2,12 @@ package chat
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
-	knowledgebase "diabetes-agent-backend/service/knowledge-base"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/request"
+	knowledgebase "diabetes-agent-server/service/knowledge-base"
+	"diabetes-agent-server/utils"
 	_ "embed"
 	"encoding/json"
 	"errors"

@@ -2,8 +2,8 @@ package chat
 
 import (
 	"context"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"

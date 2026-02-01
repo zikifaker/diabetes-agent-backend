@@ -2,11 +2,11 @@ package controller
 
 import (
 	"context"
-	"diabetes-agent-backend/request"
-	"diabetes-agent-backend/service/chat"
-	"diabetes-agent-backend/service/mq"
-	"diabetes-agent-backend/service/summarization"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/request"
+	"diabetes-agent-server/service/chat"
+	"diabetes-agent-server/service/mq"
+	"diabetes-agent-server/service/summarization"
+	"diabetes-agent-server/utils"
 	"log/slog"
 
 	"github.com/gin-gonic/gin"

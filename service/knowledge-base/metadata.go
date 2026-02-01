@@ -1,8 +1,8 @@
 package knowledgebase
 
 import (
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
 	"fmt"
 	"log/slog"
 	"strings"

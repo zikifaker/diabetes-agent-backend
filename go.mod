@@ -1,4 +1,4 @@
-module diabetes-agent-backend
+module diabetes-agent-server
 
 go 1.24.6
 

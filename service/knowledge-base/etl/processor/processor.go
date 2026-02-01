@@ -2,11 +2,11 @@ package processor
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/service/chat"
-	knowledgebase "diabetes-agent-backend/service/knowledge-base"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/service/chat"
+	knowledgebase "diabetes-agent-server/service/knowledge-base"
+	"diabetes-agent-server/utils"
 	"fmt"
 
 	"github.com/milvus-io/milvus/client/v2/column"

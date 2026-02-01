@@ -3,8 +3,8 @@ package processor
 import (
 	"bytes"
 	"context"
-	"diabetes-agent-backend/model"
-	knowledgebase "diabetes-agent-backend/service/knowledge-base"
+	"diabetes-agent-server/model"
+	knowledgebase "diabetes-agent-server/service/knowledge-base"
 	"fmt"
 	"log/slog"
 

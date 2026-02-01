@@ -1,8 +1,8 @@
 package router
 
 import (
-	"diabetes-agent-backend/controller"
-	"diabetes-agent-backend/middleware"
+	"diabetes-agent-server/controller"
+	"diabetes-agent-server/middleware"
 
 	"github.com/gin-gonic/gin"
 )

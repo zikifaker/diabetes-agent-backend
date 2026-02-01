@@ -1,9 +1,9 @@
 package main
 
 import (
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/router"
-	"diabetes-agent-backend/service/mq"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/router"
+	"diabetes-agent-server/service/mq"
 	"log/slog"
 	"os"
 )

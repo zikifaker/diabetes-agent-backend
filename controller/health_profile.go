@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
-	"diabetes-agent-backend/response"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/request"
+	"diabetes-agent-server/response"
 )
 
 func CreateHealthProfile(c *gin.Context) {

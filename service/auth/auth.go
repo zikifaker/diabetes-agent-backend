@@ -2,9 +2,9 @@ package auth
 
 import (
 	"crypto/md5"
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/request"
 	"fmt"
 	"strings"
 

@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/response"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/response"
 
 	"github.com/tmc/langchaingo/llms"
 	"gorm.io/gorm"

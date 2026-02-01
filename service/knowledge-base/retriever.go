@@ -2,9 +2,9 @@ package knowledgebase
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/utils"
 	_ "embed"
 	"fmt"
 	"log/slog"

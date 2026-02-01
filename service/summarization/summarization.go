@@ -2,11 +2,11 @@ package summarization
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/service/chat"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/service/chat"
+	"diabetes-agent-server/utils"
 	_ "embed"
 	"encoding/json"
 	"fmt"

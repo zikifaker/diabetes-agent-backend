@@ -2,10 +2,10 @@ package chat
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/request"
-	ossauth "diabetes-agent-backend/service/oss-auth"
-	"diabetes-agent-backend/utils"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/request"
+	ossauth "diabetes-agent-server/service/oss-auth"
+	"diabetes-agent-server/utils"
 	"encoding/json"
 	"fmt"
 	"io"

@@ -2,10 +2,10 @@ package mq
 
 import (
 	"context"
-	"diabetes-agent-backend/config"
-	"diabetes-agent-backend/service/chat"
-	"diabetes-agent-backend/service/knowledge-base/etl"
-	"diabetes-agent-backend/service/summarization"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/service/chat"
+	"diabetes-agent-server/service/knowledge-base/etl"
+	"diabetes-agent-server/service/summarization"
 	"encoding/json"
 	"fmt"
 	"log/slog"

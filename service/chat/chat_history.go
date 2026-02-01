@@ -2,8 +2,8 @@ package chat
 
 import (
 	"context"
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
 	"regexp"
 	"sort"
 	"strings"

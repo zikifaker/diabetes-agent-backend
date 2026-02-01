@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"diabetes-agent-backend/dao"
-	"diabetes-agent-backend/model"
-	"diabetes-agent-backend/request"
-	"diabetes-agent-backend/response"
-	knowledgebase "diabetes-agent-backend/service/knowledge-base"
-	"diabetes-agent-backend/service/knowledge-base/etl"
-	"diabetes-agent-backend/service/mq"
-	ossauth "diabetes-agent-backend/service/oss-auth"
+	"diabetes-agent-server/dao"
+	"diabetes-agent-server/model"
+	"diabetes-agent-server/request"
+	"diabetes-agent-server/response"
+	knowledgebase "diabetes-agent-server/service/knowledge-base"
+	"diabetes-agent-server/service/knowledge-base/etl"
+	"diabetes-agent-server/service/mq"
+	ossauth "diabetes-agent-server/service/oss-auth"
 	"log/slog"
 	"net/http"
 	"path/filepath"

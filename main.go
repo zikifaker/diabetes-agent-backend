@@ -3,6 +3,7 @@ package main
 import (
 	"diabetes-agent-server/config"
 	"diabetes-agent-server/router"
+	healthreport "diabetes-agent-server/service/health-weekly-report"
 	"diabetes-agent-server/service/mq"
 	"log/slog"
 	"os"
@@ -18,6 +19,9 @@ func main() {
 		return
 	}
 	defer mq.Shutdown()
+
+	// 启动健康周报定时任务
+	go healthreport.SetupHealthWeeklyReportScheduler()
 
 	// 启动 HTTP 服务
 	r := router.Register()

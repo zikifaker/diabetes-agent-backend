@@ -19,3 +19,9 @@ func GetUserByEmail(email string) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+func GetAllUsers() ([]model.User, error) {
+	var users []model.User
+	err := DB.Find(&users).Error
+	return users, err
+}

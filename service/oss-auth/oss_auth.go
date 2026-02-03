@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"strings"
 	"time"
 
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
@@ -23,8 +22,9 @@ import (
 )
 
 const (
-	OSSKeyPrefixKnowledgeBase = "knowledge-base"
-	OSSKeyPrefixUpload        = "upload"
+	OSSKeyPrefixKnowledgeBase      = "knowledge-base"
+	OSSKeyPrefixUpload             = "upload"
+	OSSKeyPrefixHealthWeeklyReport = "health-weekly-report"
 
 	// STS 临时凭证的会话有效期（单位为秒）
 	roleSessionExpiration = 3600
@@ -138,11 +138,15 @@ func GenerateKey(req request.OSSAuthRequest) (string, error) {
 	switch req.Namespace {
 	// 知识库文件对象路径格式：knowledge-base/{email}/{fileName}
 	case OSSKeyPrefixKnowledgeBase:
-		return strings.Join([]string{OSSKeyPrefixKnowledgeBase, req.Email, req.FileName}, "/"), nil
+		return fmt.Sprintf("%s/%s/%s", OSSKeyPrefixKnowledgeBase, req.Email, req.FileName), nil
 
 	// 聊天文件对象路径格式：upload/{email}/{sessionID}/{fileName}
 	case OSSKeyPrefixUpload:
-		return strings.Join([]string{OSSKeyPrefixUpload, req.Email, req.SessionID, req.FileName}, "/"), nil
+		return fmt.Sprintf("%s/%s/%s/%s", OSSKeyPrefixUpload, req.Email, req.SessionID, req.FileName), nil
+
+	// 健康周报文件对象路径格式：health-weekly-report/{email}/{startAt}_{endAt}
+	case OSSKeyPrefixHealthWeeklyReport:
+		return fmt.Sprintf("%s/%s/%s_%s.html", OSSKeyPrefixHealthWeeklyReport, req.Email, req.StartAt, req.EndAt), nil
 
 	default:
 		return "", fmt.Errorf("invalid namespace: %v", req.Namespace)

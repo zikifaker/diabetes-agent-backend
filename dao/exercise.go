@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+type ExerciseStats struct {
+	TotalMinutes   int     `json:"total_minutes"`
+	AverageMinutes float64 `json:"average_minutes"`
+	Count          int     `json:"count"`
+}
+
 func GetExerciseRecords(email string, start, end time.Time) ([]response.GetExerciseRecordsResponse, error) {
 	var records []response.GetExerciseRecordsResponse
 	err := DB.Model(&model.ExerciseRecord{}).
@@ -19,4 +25,13 @@ func GetExerciseRecords(email string, start, end time.Time) ([]response.GetExerc
 func DeleteExerciseRecord(id uint) error {
 	return DB.Where("id = ?", id).
 		Delete(&model.ExerciseRecord{}).Error
+}
+
+func GetExerciseStats(email string, start, end time.Time) (*ExerciseStats, error) {
+	var stats ExerciseStats
+	err := DB.Model(&model.ExerciseRecord{}).
+		Select("COUNT(*) as count, SUM(duration) as total_minutes, AVG(duration) as average_minutes").
+		Where("user_email = ? AND start_at BETWEEN ? AND ?", email, start, end).
+		Take(&stats).Error
+	return &stats, err
 }

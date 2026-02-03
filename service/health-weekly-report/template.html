@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>健康周报 - {{.ReportPeriod}}</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .section {
+      padding: 30px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .section-title {
+      font-size: 1.8em;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px;
+      margin: 20px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stat-label {
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .conclusion-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #28a745;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .data-table th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+    }
+
+    .meals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .advice-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .advice-list li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f8f9fa;
+      border-left: 4px solid #4b5563;
+      padding-left: 15px;
+    }
+
+    .goal-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .goal-list li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f0f9ff;
+      border-left: 4px solid #3b82f6;
+      padding-left: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 健康周报</h1>
+      <div class="period">{{.ReportPeriod}}</div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">🩸 周血糖数据分析</h2>
+
+      <div class="chart-container">
+        <canvas id="bloodSugarChart"></canvas>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{.BloodGlucoseStats.Avg}}</div>
+          <div class="stat-label">平均血糖值 (mmol/L)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{.BloodGlucoseStats.Max}}</div>
+          <div class="stat-label">最高血糖值 (mmol/L)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{.BloodGlucoseStats.Min}}</div>
+          <div class="stat-label">最低血糖值 (mmol/L)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{.BloodGlucoseStats.Count}}</div>
+          <div class="stat-label">测量次数</div>
+        </div>
+      </div>
+
+      <div class="conclusion-box">
+        <strong>📈 数据分析：</strong><br>
+        {{.HealthAnalysis.BloodGlucoseAnalysis}}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">🏃 周运动数据分析</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{.ExerciseStats.TotalMinutes}}</div>
+          <div class="stat-label">总运动时长 (分钟)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{.ExerciseStats.Count}}</div>
+          <div class="stat-label">运动天数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{.ExerciseStats.AverageMinutes}}</div>
+          <div class="stat-label">平均每日运动 (分钟)</div>
+        </div>
+      </div>
+
+      <h3 style="color: #4b5563; margin-top: 30px; margin-bottom: 15px;">📋 运动记录详情</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>运动类型</th>
+            <th>运动名称</th>
+            <th>强度</th>
+            <th>时长 (分钟)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .ExerciseRecords}}
+          <tr>
+            <td>{{.Type}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Intensity}}</td>
+            <td>{{.Duration}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <div class="conclusion-box">
+        <strong>🏆 运动总结：</strong><br>
+        {{.HealthAnalysis.ExerciseAnalysis}}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">🍎 下周饮食建议</h2>
+
+      <h3 style="color: #4b5563; margin-top: 30px; margin-bottom: 15px;">🍽️ 推荐食谱</h3>
+      <div class="meals-grid">
+        {{range .HealthAnalysis.RecommendedMeals}}
+        <div class="meal-card">
+          <h4>{{.Name}}</h4>
+          <p>{{.Description}}</p>
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">📝 周结语</h2>
+
+      <div class="conclusion-box">
+        {{.HealthAnalysis.Conclusion}}
+      </div>
+    </div>
+
+    <div id="chart-config" data-records='{{json .BloodGlucoseRecords}}' style="display: none;"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const configEl = document.getElementById('chart-config');
+      const records = JSON.parse(configEl.dataset.records || '[]');
+
+      const chartData = {
+        labels: records.map(record => {
+          return new Date(record.measured_at).toLocaleString('zh-CN', {
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          });
+        }),
+        values: records.map(record => record.value),
+        diningStatus: records.map(record => record.dining_status)
+      };
+
+      const ctx = document.getElementById('bloodSugarChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartData.labels,
+          datasets: [{
+            label: '血糖值 (mmol/L)',
+            data: chartData.values,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1,
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: '血糖值 (mmol/L)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: '日期/时间'
+              }
+            }
+          },
+          tooltips: {
+            callbacks: {
+              afterBody: function (tooltipItems, data) {
+                const index = tooltipItems[0].index;
+                return `用餐状态: ${chartData.diningStatus[index] || '未知'}`;
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

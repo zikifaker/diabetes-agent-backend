@@ -3,9 +3,9 @@ package summarization
 import (
 	"context"
 	"diabetes-agent-server/config"
+	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/model"
-	"diabetes-agent-server/service/chat"
 	"diabetes-agent-server/utils"
 	_ "embed"
 	"encoding/json"
@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	modelName       = "deepseek-v3"
+	modelName       = "deepseek-v3.1"
 	updateBatchSize = 1
 
 	// 生成消息摘要的最小消息长度
@@ -106,7 +106,7 @@ func generateSummary(ctx context.Context, role, content string) (string, error) 
 	llm, err := openai.New(
 		openai.WithModel(modelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(chat.BaseURL),
+		openai.WithBaseURL(constants.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

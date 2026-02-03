@@ -3,6 +3,7 @@ package knowledgebase
 import (
 	"context"
 	"diabetes-agent-server/config"
+	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/utils"
 	_ "embed"
@@ -19,7 +20,6 @@ import (
 )
 
 const (
-	baseURL            = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 	llmName            = "qwen-plus"
 	embeddingModelName = "text-embedding-v4"
 	collectionName     = "knowledge_doc"
@@ -43,7 +43,7 @@ func init() {
 		openai.WithModel(llmName),
 		openai.WithEmbeddingModel(embeddingModelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(baseURL),
+		openai.WithBaseURL(constants.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

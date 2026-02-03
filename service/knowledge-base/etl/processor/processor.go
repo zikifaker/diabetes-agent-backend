@@ -3,8 +3,8 @@ package processor
 import (
 	"context"
 	"diabetes-agent-server/config"
+	"diabetes-agent-server/constants"
 	"diabetes-agent-server/model"
-	"diabetes-agent-server/service/chat"
 	knowledgebase "diabetes-agent-server/service/knowledge-base"
 	"diabetes-agent-server/utils"
 	"fmt"
@@ -51,7 +51,7 @@ func NewBaseETLProcessor(textSplitter textsplitter.TextSplitter) (*BaseETLProces
 	client, err := openai.New(
 		openai.WithEmbeddingModel(embeddingModelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(chat.BaseURL),
+		openai.WithBaseURL(constants.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

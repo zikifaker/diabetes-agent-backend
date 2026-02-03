@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"diabetes-agent-server/config"
+	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/model"
 	"diabetes-agent-server/request"
@@ -28,11 +29,7 @@ import (
 	"github.com/tmc/langchaingo/tools"
 )
 
-const (
-	BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-
-	methodToolCompleted = "tool_completed"
-)
+const methodToolCompleted = "tool_completed"
 
 // Agent 对话服务的 HTTP 客户端，配置 300s 超时时间处理流式输出
 var httpClient = utils.NewHTTPClient(
@@ -68,7 +65,7 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 	llm, err := openai.New(
 		openai.WithModel(req.AgentConfig.Model),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(BaseURL),
+		openai.WithBaseURL(constants.BaseURL),
 		openai.WithHTTPClient(httpClient),
 	)
 	if err != nil {

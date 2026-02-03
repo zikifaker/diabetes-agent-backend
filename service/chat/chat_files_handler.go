@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"diabetes-agent-server/config"
+	"diabetes-agent-server/constants"
 	"diabetes-agent-server/request"
 	ossauth "diabetes-agent-server/service/oss-auth"
 	"diabetes-agent-server/utils"
@@ -97,7 +98,7 @@ func handleImages(ctx context.Context, urls []string) (string, error) {
 	vlm, err := openai.New(
 		openai.WithModel(modelNameVLM),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(BaseURL),
+		openai.WithBaseURL(constants.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

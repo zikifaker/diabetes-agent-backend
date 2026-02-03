@@ -136,11 +136,11 @@ func generatePolicyTokenSignature(stringToSign string, cred *credentials.Credent
 // GenerateKey 生成对象路径
 func GenerateKey(req request.OSSAuthRequest) (string, error) {
 	switch req.Namespace {
-	// 对象路径格式：knowledge-base/{email}/{fileName}
+	// 知识库文件对象路径格式：knowledge-base/{email}/{fileName}
 	case OSSKeyPrefixKnowledgeBase:
 		return strings.Join([]string{OSSKeyPrefixKnowledgeBase, req.Email, req.FileName}, "/"), nil
 
-	// 对象路径格式：upload/{email}/{sessionID}/{fileName}
+	// 聊天文件对象路径格式：upload/{email}/{sessionID}/{fileName}
 	case OSSKeyPrefixUpload:
 		return strings.Join([]string{OSSKeyPrefixUpload, req.Email, req.SessionID, req.FileName}, "/"), nil
 

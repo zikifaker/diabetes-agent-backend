@@ -50,6 +50,8 @@ func Register() *gin.Engine {
 			protected.GET("/exercise/records", controller.GetExerciseRecords)
 			protected.POST("/exercise/record", controller.CreateExerciseRecord)
 			protected.DELETE("/exercise/record/:id", controller.DeleteExerciseRecord)
+
+			protected.GET("/health-weekly-reports", controller.GetHealthWeeklyReports)
 		}
 	}
 

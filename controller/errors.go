@@ -39,4 +39,6 @@ var (
 	ErrCreateExerciseRecord = errors.New("failed to create exercise record")
 	ErrGetExerciseRecords   = errors.New("failed to get exercise records")
 	ErrDeleteExerciseRecord = errors.New("failed to delete exercise record")
+
+	ErrGetHealthWeeklyReports = errors.New("failed to get health weekly reports")
 )

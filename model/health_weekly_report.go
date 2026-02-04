@@ -10,6 +10,7 @@ type HealthWeeklyReport struct {
 	StartAt    time.Time `gorm:"not null;index:idx_email_start_at" json:"start_at"`
 	EndAt      time.Time `gorm:"not null" json:"end_at"`
 	ObjectName string    `gorm:"not null" json:"object_name"`
+	FileName   string    `gorm:"not null" json:"file_name"`
 }
 
 func (HealthWeeklyReport) TableName() string {

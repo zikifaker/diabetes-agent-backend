@@ -6,6 +6,4 @@ type OSSAuthRequest struct {
 	Email     string `json:"email"`
 	SessionID string `json:"session_id"`
 	FileName  string `json:"file_name"`
-	StartAt   string `json:"start_at"`
-	EndAt     string `json:"end_at"`
 }

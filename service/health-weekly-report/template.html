@@ -3,6 +3,8 @@
 
 <head>
   <title>健康周报 - {{.ReportPeriod}}</title>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <style>
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
@@ -22,7 +24,7 @@
     }
 
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #4285F4 0%, #3367D6 100%);
       color: white;
       padding: 30px;
       text-align: center;
@@ -145,7 +147,7 @@
       <h2 class="section-title">🩸 周血糖数据分析</h2>
 
       <div class="chart-container">
-        <canvas id="bloodSugarChart"></canvas>
+        <canvas id="bloodGlucoseChart"></canvas>
       </div>
 
       <div class="stats-grid">
@@ -244,34 +246,35 @@
     <div id="chart-config" data-records='{{json .BloodGlucoseRecords}}' style="display: none;"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const configEl = document.getElementById('chart-config');
       const records = JSON.parse(configEl.dataset.records || '[]');
 
-      const chartData = {
-        labels: records.map(record => {
-          return new Date(record.measured_at).toLocaleString('zh-CN', {
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-          });
-        }),
-        values: records.map(record => record.value),
-        diningStatus: records.map(record => record.dining_status)
-      };
+      const diningStatusMap = {
+        'fasting': '空腹',
+        'before_breakfast': '早餐前',
+        'after_breakfast': '早餐后',
+        'before_lunch': '午餐前',
+        'after_lunch': '午餐后',
+        'before_dinner': '晚餐前',
+        'after_dinner': '晚餐后',
+        'bedtime': '睡前',
+        'random': '随机记录'
+      }
 
-      const ctx = document.getElementById('bloodSugarChart').getContext('2d');
+      const ctx = document.getElementById('bloodGlucoseChart').getContext('2d');
       new Chart(ctx, {
         type: 'line',
         data: {
-          labels: chartData.labels,
+          labels: records.map(r => dayjs(r.measured_at).format('YYYY-MM-DD HH:mm')),
           datasets: [{
             label: '血糖值 (mmol/L)',
-            data: chartData.values,
+            data: records.map(r => ({
+              x: dayjs(r.measured_at).format('YYYY-MM-DD HH:mm'),
+              y: r.value,
+              diningStatus: r.dining_status
+            })),
             borderColor: 'rgb(75, 192, 192)',
             tension: 0.1,
             fill: false
@@ -280,6 +283,18 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (context) => `${context.parsed.y.toFixed(1)} mmol/L`,
+                title: (context) => context[0].label,
+                afterBody: (context) => {
+                  const status = context[0].raw.diningStatus;
+                  return `用餐状态: ${diningStatusMap[status] || '未知状态'}`;
+                }
+              }
+            }
+          },
           scales: {
             y: {
               beginAtZero: false,
@@ -292,14 +307,6 @@
               title: {
                 display: true,
                 text: '日期/时间'
-              }
-            }
-          },
-          tooltips: {
-            callbacks: {
-              afterBody: function (tooltipItems, data) {
-                const index = tooltipItems[0].index;
-                return `用餐状态: ${chartData.diningStatus[index] || '未知'}`;
               }
             }
           }

@@ -144,9 +144,9 @@ func GenerateKey(req request.OSSAuthRequest) (string, error) {
 	case OSSKeyPrefixUpload:
 		return fmt.Sprintf("%s/%s/%s/%s", OSSKeyPrefixUpload, req.Email, req.SessionID, req.FileName), nil
 
-	// 健康周报文件对象路径格式：health-weekly-report/{email}/{startAt}_{endAt}
+	// 健康周报文件对象路径格式：health-weekly-report/{email}/{fileName}
 	case OSSKeyPrefixHealthWeeklyReport:
-		return fmt.Sprintf("%s/%s/%s_%s.html", OSSKeyPrefixHealthWeeklyReport, req.Email, req.StartAt, req.EndAt), nil
+		return fmt.Sprintf("%s/%s/%s", OSSKeyPrefixHealthWeeklyReport, req.Email, req.FileName), nil
 
 	default:
 		return "", fmt.Errorf("invalid namespace: %v", req.Namespace)

@@ -95,7 +95,7 @@ func GenerateWeeklyReports() {
 	start := thisMonday.AddDate(0, 0, -7)
 
 	for _, user := range users {
-		if err := GenerateWeeklyReport(ctx, user.Email, start, end); err != nil {
+		if err := generateWeeklyReport(ctx, user.Email, start, end); err != nil {
 			slog.Error("Failed to generate health report",
 				"email", user.Email,
 				"start", start,
@@ -106,7 +106,7 @@ func GenerateWeeklyReports() {
 	}
 }
 
-func GenerateWeeklyReport(ctx context.Context, email string, start, end time.Time) error {
+func generateWeeklyReport(ctx context.Context, email string, start, end time.Time) error {
 	userHealthData, err := getUserHealthData(ctx, email, start, end)
 	if err != nil {
 		return fmt.Errorf("failed to get user health data: %v", err)
@@ -117,11 +117,12 @@ func GenerateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 		return fmt.Errorf("failed to generate health analysis: %v", err)
 	}
 
-	formattedStart := start.Format("2006-01-02")
-	formattedEnd := end.Format("2006-01-02")
+	formattedStart := start.Format("2006/01/02")
+	formattedEnd := end.Format("2006/01/02")
+	fileName := fmt.Sprintf("%s-%s.html", formattedStart, formattedEnd)
 
 	htmlContent, err := renderReport(ctx, &ReportData{
-		ReportPeriod:        formattedStart + " - " + formattedEnd,
+		ReportPeriod:        formattedStart + " 至 " + formattedEnd,
 		BloodGlucoseRecords: userHealthData.BloodGlucoseRecords,
 		BloodGlucoseStats:   userHealthData.BloodGlucoseStats,
 		ExerciseRecords:     userHealthData.ExerciseRecords,
@@ -135,8 +136,7 @@ func GenerateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 	objectName, err := ossauth.GenerateKey(request.OSSAuthRequest{
 		Namespace: ossauth.OSSKeyPrefixHealthWeeklyReport,
 		Email:     email,
-		StartAt:   formattedStart,
-		EndAt:     formattedEnd,
+		FileName:  fileName,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to generate oss key: %v", err)
@@ -147,6 +147,7 @@ func GenerateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 		UserEmail:  email,
 		StartAt:    start,
 		EndAt:      end,
+		FileName:   fileName,
 		ObjectName: objectName,
 	}).Error; err != nil {
 		return fmt.Errorf("failed to save health weekly report: %v", err)

@@ -32,10 +32,11 @@ func GetPolicyToken(c *gin.Context) {
 
 func GetPresignedURL(c *gin.Context) {
 	url, err := ossauth.GeneratePresignedURL(request.OSSAuthRequest{
-		Namespace: c.Query("namespace"),
-		Email:     c.GetString("email"),
-		SessionID: c.Query("session-id"),
-		FileName:  c.Query("file-name"),
+		Namespace:       c.Query("namespace"),
+		Email:           c.GetString("email"),
+		SessionID:       c.Query("session-id"),
+		FileName:        c.Query("file-name"),
+		UseCustomDomain: c.Query("use-custom-domain") == "true",
 	})
 	if err != nil {
 		slog.Error(ErrGetPreSignedURL.Error(), "err", err)

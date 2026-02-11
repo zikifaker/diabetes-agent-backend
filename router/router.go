@@ -33,7 +33,7 @@ func Register() *gin.Engine {
 			protected.POST("/voice-recognition", controller.ChatVoiceRecognition)
 
 			protected.GET("/oss/policy-token", controller.GetPolicyToken)
-			protected.GET("/oss/download-link", controller.GetPresignedURL)
+			protected.GET("/oss/presigned-url", controller.GetPresignedURL)
 
 			protected.GET("/kb/metadata", controller.GetKnowledgeMetadata)
 			protected.POST("/kb/metadata", controller.UploadKnowledgeMetadata)

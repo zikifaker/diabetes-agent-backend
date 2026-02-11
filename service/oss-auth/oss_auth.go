@@ -153,16 +153,23 @@ func GenerateKey(req request.OSSAuthRequest) (string, error) {
 	}
 }
 
-// GeneratePresignedURL 生成预签名URL，用于前端获取临时下载链接
+// GeneratePresignedURL 生成预签名URL，用于下载和预览文件
 func GeneratePresignedURL(req request.OSSAuthRequest) (string, error) {
-	cfg := &oss.Config{
-		Region: oss.Ptr(config.Cfg.OSS.Region),
-		CredentialsProvider: osscredentials.NewStaticCredentialsProvider(
+	cfg := oss.NewConfig().
+		WithCredentialsProvider(osscredentials.NewStaticCredentialsProvider(
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
-		),
-		HttpClient: utils.GlobalHTTPClient,
+		)).
+		WithRegion(config.Cfg.OSS.Region).
+		WithHttpClient(utils.GlobalHTTPClient)
+
+	// 配置自定义域名用于预览文件
+	if req.UseCustomDomain {
+		cfg = cfg.
+			WithEndpoint(config.Cfg.OSS.CustomDomain).
+			WithUseCName(true)
 	}
+
 	client := oss.NewClient(cfg)
 
 	key, err := GenerateKey(req)

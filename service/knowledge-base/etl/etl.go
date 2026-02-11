@@ -109,14 +109,13 @@ func HandleDeleteMessage(ctx context.Context, msg *primitive.MessageExt) error {
 }
 
 func getObjectFromOSS(ctx context.Context, etlMessage *ETLMessage) ([]byte, error) {
-	cfg := &oss.Config{
-		Region: oss.Ptr(config.Cfg.OSS.Region),
-		CredentialsProvider: credentials.NewStaticCredentialsProvider(
+	cfg := oss.NewConfig().
+		WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
-		),
-		HttpClient: utils.GlobalHTTPClient,
-	}
+		)).
+		WithRegion(config.Cfg.OSS.Region).
+		WithHttpClient(utils.GlobalHTTPClient)
 	client := oss.NewClient(cfg)
 
 	result, err := client.GetObject(ctx, &oss.GetObjectRequest{
@@ -137,14 +136,13 @@ func getObjectFromOSS(ctx context.Context, etlMessage *ETLMessage) ([]byte, erro
 }
 
 func deleteObjectFromOSS(ctx context.Context, deleteMessage *DeleteMessage) error {
-	cfg := &oss.Config{
-		Region: oss.Ptr(config.Cfg.OSS.Region),
-		CredentialsProvider: credentials.NewStaticCredentialsProvider(
+	cfg := oss.NewConfig().
+		WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
-		),
-		HttpClient: utils.GlobalHTTPClient,
-	}
+		)).
+		WithRegion(config.Cfg.OSS.Region).
+		WithHttpClient(utils.GlobalHTTPClient)
 	client := oss.NewClient(cfg)
 
 	_, err := client.DeleteObject(ctx, &oss.DeleteObjectRequest{

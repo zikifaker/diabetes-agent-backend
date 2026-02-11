@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
-	osscredentials "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
+	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
 	"github.com/go-co-op/gocron"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -258,14 +258,13 @@ func renderReport(ctx context.Context, data *ReportData) (string, error) {
 }
 
 func uploadReport(ctx context.Context, content string, objectName string) error {
-	cfg := &oss.Config{
-		Region: oss.Ptr(config.Cfg.OSS.Region),
-		CredentialsProvider: osscredentials.NewStaticCredentialsProvider(
+	cfg := oss.NewConfig().
+		WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			config.Cfg.OSS.AccessKeyID,
 			config.Cfg.OSS.AccessKeySecret,
-		),
-		HttpClient: utils.GlobalHTTPClient,
-	}
+		)).
+		WithRegion(config.Cfg.OSS.Region).
+		WithHttpClient(utils.GlobalHTTPClient)
 	client := oss.NewClient(cfg)
 
 	req := oss.PutObjectRequest{

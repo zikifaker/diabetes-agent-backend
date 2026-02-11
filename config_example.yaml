@@ -25,6 +25,7 @@ oss:
   access_key_id: 
   access_key_secret: 
   role_arn: 
+  custome_domain: 
 
 mq:
   name_server: []

@@ -33,6 +33,7 @@ type Config struct {
 		AccessKeyID     string `yaml:"access_key_id"`
 		AccessKeySecret string `yaml:"access_key_secret"`
 		RoleARN         string `yaml:"role_arn"`
+		CustomDomain    string `yaml:"custom_domain"`
 	} `yaml:"oss"`
 	MQ struct {
 		NameServer []string `yaml:"name_server"`

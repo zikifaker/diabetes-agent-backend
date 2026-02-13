@@ -158,6 +158,20 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 		return fmt.Errorf("failed to upload health weekly report: %v", err)
 	}
 
+	msg := model.SystemMessage{
+		UserEmail: email,
+		Title:     "健康周报",
+		Content:   fmt.Sprintf("您的健康周报(%s 至 %s)已生成，请查收。", formattedStart, formattedEnd),
+		IsRead:    false,
+	}
+	if err := dao.DB.Create(&msg).Error; err != nil {
+		return fmt.Errorf("Failed to save system message: %v", err)
+	}
+
+	// 更新未读消息计数
+	key := fmt.Sprintf(constants.KeyUserUnreadMsgCount, email)
+	dao.RedisClient.Incr(ctx, key)
+
 	return nil
 }
 

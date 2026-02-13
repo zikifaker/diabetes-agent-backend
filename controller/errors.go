@@ -41,4 +41,8 @@ var (
 	ErrDeleteExerciseRecord = errors.New("failed to delete exercise record")
 
 	ErrGetHealthWeeklyReports = errors.New("failed to get health weekly reports")
+
+	ErrGetSystemMessages         = errors.New("failed to get system messages")
+	ErrUpdateSystemMessageAsRead = errors.New("failed to update system message as read")
+	ErrDeleteSystemMessage       = errors.New("failed to delete system message")
 )

@@ -20,6 +20,12 @@ type Config struct {
 	DB struct {
 		MySQL DBConfig `yaml:"mysql"`
 	} `yaml:"db"`
+	Redis struct {
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
+		Password string `yaml:"password"`
+		DB       int    `yaml:"db"`
+	} `yaml:"redis"`
 	JWT struct {
 		SecretKey string `yaml:"secret_key"`
 	} `yaml:"jwt"`

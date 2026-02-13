@@ -268,9 +268,10 @@ func uploadReport(ctx context.Context, content string, objectName string) error 
 	client := oss.NewClient(cfg)
 
 	req := oss.PutObjectRequest{
-		Bucket: oss.Ptr(config.Cfg.OSS.BucketName),
-		Key:    oss.Ptr(objectName),
-		Body:   strings.NewReader(content),
+		Bucket:      oss.Ptr(config.Cfg.OSS.BucketName),
+		Key:         oss.Ptr(objectName),
+		Body:        strings.NewReader(content),
+		ContentType: oss.Ptr("text/html; charset=utf-8"),
 	}
 
 	_, err := client.PutObject(ctx, &req)

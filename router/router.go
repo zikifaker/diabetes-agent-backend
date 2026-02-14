@@ -56,6 +56,7 @@ func Register() *gin.Engine {
 			protected.GET("/system-messages", controller.GetSystemMessages)
 			protected.PUT("/system-message/:id/read", controller.UpdateSystemMessageAsRead)
 			protected.DELETE("/system-message/:id", controller.DeleteSystemMessage)
+			protected.GET("/system-messages/unread/count", controller.GetUnreadSystemMessageCount)
 		}
 	}
 

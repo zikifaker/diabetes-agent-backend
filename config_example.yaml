@@ -12,6 +12,12 @@ db:
     password: 
     db_name: 
 
+redis:
+  host: 
+  port: 
+  password: 
+  db: 
+
 jwt:
   secret_key: 
 

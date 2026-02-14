@@ -5,7 +5,7 @@ import (
 	"diabetes-agent-server/response"
 )
 
-const pageSize = 20
+const pageSize = 10
 
 func GetSystemMessages(email string, page int) (*response.GetSystemMessagesResponse, error) {
 	var msgs response.GetSystemMessagesResponse

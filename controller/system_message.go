@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 func GetSystemMessages(c *gin.Context) {
@@ -84,4 +85,25 @@ func DeleteSystemMessage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Response{})
+}
+
+func GetUnreadSystemMessageCount(c *gin.Context) {
+	ctx := context.Background()
+	email := c.GetString("email")
+	key := fmt.Sprintf(constants.KeyUserUnreadMsgCount, email)
+
+	count, err := dao.RedisClient.Get(ctx, key).Int64()
+	if err != nil && err != redis.Nil {
+		slog.Error(ErrGetUnreadSystemMessageCount.Error(), "err", err)
+		c.JSON(http.StatusInternalServerError, response.Response{
+			Msg: ErrGetUnreadSystemMessageCount.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Data: response.GetUnreadSystemMessageCountResponse{
+			Count: count,
+		},
+	})
 }

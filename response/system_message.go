@@ -8,9 +8,13 @@ type GetSystemMessagesResponse struct {
 }
 
 type SystemMessageResponse struct {
-	ID        int64     `json:"id"`
+	ID        uint      `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	IsRead    bool      `json:"is_read"`
+}
+
+type GetUnreadSystemMessageCountResponse struct {
+	Count int64 `json:"count"`
 }

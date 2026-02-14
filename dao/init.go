@@ -4,6 +4,7 @@ import (
 	"context"
 	"diabetes-agent-server/config"
 	"fmt"
+	"time"
 
 	"github.com/milvus-io/milvus/client/v2/milvusclient"
 	"github.com/redis/go-redis/v9"
@@ -49,4 +50,11 @@ func init() {
 		Password: config.Cfg.Redis.Password,
 		DB:       config.Cfg.Redis.DB,
 	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := RedisClient.Ping(ctx).Err(); err != nil {
+		panic(fmt.Sprintf("Failed to connect to Redis: %v", err))
+	}
 }

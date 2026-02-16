@@ -5,9 +5,10 @@ import "errors"
 var (
 	ErrParseRequest = errors.New("failed to parse request")
 
-	ErrUserRegister  = errors.New("failed to register user")
-	ErrGenerateToken = errors.New("failed to generate token")
-	ErrUserLogin     = errors.New("failed to login")
+	ErrUserRegister         = errors.New("failed to register user")
+	ErrGenerateToken        = errors.New("failed to generate token")
+	ErrUserLogin            = errors.New("failed to login")
+	ErrSendVerificationCode = errors.New("failed to send verification code")
 
 	ErrCreateSession      = errors.New("failed to create an agent session")
 	ErrGetSessions        = errors.New("failed to get agent sessions")

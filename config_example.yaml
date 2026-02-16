@@ -37,6 +37,7 @@ mq:
   name_server: []
 
 model:
+  base_url: 
   api_key: 
 
 milvus:
@@ -44,3 +45,9 @@ milvus:
   api_key: 
   username: 
   password: 
+
+email:
+  host: 
+  port: 
+  password: 
+  from_email: 

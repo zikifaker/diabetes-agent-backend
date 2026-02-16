@@ -1,28 +1,64 @@
 package auth
 
 import (
+	"bytes"
+	"context"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/tls"
+	"diabetes-agent-server/config"
+	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/model"
 	"diabetes-agent-server/request"
+	_ "embed"
 	"fmt"
+	"html/template"
+	"log/slog"
+	"math/big"
+	"net"
+	"net/smtp"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func UserRegister(req request.UserRegisterRequest) (model.User, error) {
+const (
+	loginTypePassword = "password"
+	loginTypeCode     = "code"
+
+	// 验证码的随机数源
+	codeNumbers = "0123456789"
+
+	// 验证码过期时间
+	codeExpiration = 5 * time.Minute
+
+	// 验证码发送间隔
+	codeInterval = 1 * time.Minute
+)
+
+//go:embed template.html
+var emailTemplate string
+
+type EmailData struct {
+	Code       string
+	Expiration int
+}
+
+func UserRegister(req request.UserRegisterRequest) (*model.User, error) {
+	// 检查邮箱是否已注册
 	existingUser, err := dao.GetUserByEmail(req.Email)
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to get user %s: %v", req.Email, err)
+		return nil, fmt.Errorf("failed to get user %s: %v", req.Email, err)
 	}
 	if existingUser != nil {
-		return model.User{}, fmt.Errorf("email %s has already been used", req.Email)
+		return nil, fmt.Errorf("%s is used", req.Email)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return model.User{}, err
+		return nil, err
 	}
 
 	user := model.User{
@@ -31,10 +67,10 @@ func UserRegister(req request.UserRegisterRequest) (model.User, error) {
 		Avatar:   "https://api.dicebear.com/7.x/avataaars/svg?seed=" + generateAvatarSeed(req.Email),
 	}
 	if err := dao.DB.Create(&user).Error; err != nil {
-		return model.User{}, err
+		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func generateAvatarSeed(email string) string {
@@ -44,16 +80,215 @@ func generateAvatarSeed(email string) string {
 }
 
 func UserLogin(req request.UserLoginRequest) (*model.User, error) {
+	// 检查用户是否存在
 	user, err := dao.GetUserByEmail(req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user %s: %v", req.Email, err)
 	}
 	if user == nil {
-		return nil, fmt.Errorf("invalid email: %s", req.Email)
+		return nil, fmt.Errorf("%s is not registered", req.Email)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, fmt.Errorf("invalid password: %v", err)
+	switch req.Type {
+	case loginTypePassword:
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+			return nil, fmt.Errorf("invalid password: %v", err)
+		}
+	case loginTypeCode:
+		if err := verifyCode(req.Email, req.Code); err != nil {
+			return nil, fmt.Errorf("invalid code: %v", err)
+		}
+	default:
+		return nil, fmt.Errorf("invalid login type: %s", req.Type)
 	}
+
 	return user, nil
+}
+
+func verifyCode(email, code string) error {
+	if code == "" {
+		return fmt.Errorf("required verification code")
+	}
+
+	ctx := context.Background()
+	key := fmt.Sprintf(constants.KeyVerificationCode, email)
+	exists, err := dao.RedisClient.Exists(ctx, key).Result()
+	if err != nil {
+		return fmt.Errorf("failed to check verification code: %v", err)
+	}
+	if exists == 0 {
+		return fmt.Errorf("verification code not found")
+	}
+
+	storedCode, err := dao.RedisClient.Get(ctx, key).Result()
+	if err != nil {
+		return fmt.Errorf("failed to get verification code: %v", err)
+	}
+	if storedCode != code {
+		return fmt.Errorf("verification code mismatch")
+	}
+
+	// 校验成功后删除 key，防止重复使用
+	if _, err := dao.RedisClient.Del(ctx, key).Result(); err != nil {
+		slog.Error("error deleting verification code", "err", err)
+	}
+
+	return nil
+}
+
+func SendVerificationCode(req request.SendEmailCodeRequest) error {
+	// 检查用户是否存在
+	user, err := dao.GetUserByEmail(req.Email)
+	if err != nil {
+		return fmt.Errorf("failed to get user %s: %v", req.Email, err)
+	}
+	if user == nil {
+		return fmt.Errorf("%s is not registered", req.Email)
+	}
+
+	// 检查 code key 是否存在
+	key := fmt.Sprintf(constants.KeyVerificationCode, req.Email)
+	ctx := context.Background()
+	exists, err := dao.RedisClient.Exists(ctx, key).Result()
+	if err != nil {
+		return fmt.Errorf("failed to check verification code: %v", err)
+	}
+
+	// 若 code key 存在，检查是否在间隔窗口内
+	if exists > 0 {
+		ttl := dao.RedisClient.TTL(ctx, key).Val()
+		if ttl > 0 {
+			// key 从创建到当前的时间间隔
+			elapsedTime := codeExpiration - ttl
+			if elapsedTime < codeInterval {
+				return fmt.Errorf("sending code too frequently, please try again later")
+			}
+		}
+	}
+
+	// 存储验证码到 Redis，设置过期时间
+	code := generateCode()
+	err = dao.RedisClient.Set(ctx, key, code, codeExpiration).Err()
+	if err != nil {
+		return fmt.Errorf("failed to save verification code: %v", err)
+	}
+
+	if err := sendEmail(req.Email, code); err != nil {
+		return fmt.Errorf("failed to send email: %v", err)
+	}
+	return nil
+}
+
+func generateCode() string {
+	code := ""
+	for i := 0; i < 6; i++ {
+		num, _ := rand.Int(rand.Reader, big.NewInt(10))
+		code += string(codeNumbers[num.Int64()])
+	}
+	return code
+}
+
+func sendEmail(toEmail, code string) error {
+	cfg := config.Cfg.Email
+	message, err := buildMessage(cfg.FromEmail, toEmail, code)
+	if err != nil {
+		return err
+	}
+
+	auth := smtp.PlainAuth(
+		"",
+		cfg.FromEmail,
+		cfg.Password,
+		cfg.Host,
+	)
+	return executeSendEmail(
+		fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		auth,
+		cfg.FromEmail,
+		[]string{toEmail},
+		[]byte(message),
+	)
+}
+
+func buildMessage(fromEmail, toEmail, code string) (string, error) {
+	var content strings.Builder
+
+	header := make(map[string]string)
+	header["From"] = fmt.Sprintf("%s <%s>", "Diabetes Agent", fromEmail)
+	header["To"] = toEmail
+	header["Subject"] = "验证码"
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = "text/html; charset=UTF-8"
+	for k, v := range header {
+		content.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+	}
+
+	tmpl, err := template.New("message").Parse(emailTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, EmailData{
+		Code:       code,
+		Expiration: int(codeExpiration.Minutes()),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	content.WriteString("\r\n")
+	content.WriteString(buf.String())
+
+	return content.String(), nil
+}
+
+func executeSendEmail(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
+	host, _, _ := net.SplitHostPort(addr)
+
+	// 建立与 SMTP 服务器的 TLS 连接
+	conn, err := tls.Dial("tcp", addr, nil)
+	if err != nil {
+		return err
+	}
+
+	// 创建一个新的SMTP客户端
+	client, err := smtp.NewClient(conn, host)
+	if err != nil {
+		return err
+	}
+	defer client.Quit()
+
+	// 若 SMTP 服务器支持身份验证，则进行验证
+	if auth != nil {
+		if ok, _ := client.Extension("AUTH"); ok {
+			if err := client.Auth(auth); err != nil {
+				return err
+			}
+		}
+	}
+
+	// 设置发件方
+	if err := client.Mail(from); err != nil {
+		return err
+	}
+
+	// 设置收件方
+	for _, addr := range to {
+		if err := client.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+
+	w, err := client.Data()
+	if err != nil {
+		return err
+	}
+
+	// 写入邮件消息
+	if _, err := w.Write(msg); err != nil {
+		return err
+	}
+
+	return w.Close()
 }

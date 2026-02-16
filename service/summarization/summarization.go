@@ -3,7 +3,6 @@ package summarization
 import (
 	"context"
 	"diabetes-agent-server/config"
-	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/model"
 	"diabetes-agent-server/utils"
@@ -106,7 +105,7 @@ func generateSummary(ctx context.Context, role, content string) (string, error) 
 	llm, err := openai.New(
 		openai.WithModel(modelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(constants.BaseURL),
+		openai.WithBaseURL(config.Cfg.Model.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

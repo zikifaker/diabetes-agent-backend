@@ -17,6 +17,7 @@ func Register() *gin.Engine {
 		{
 			public.POST("/register", controller.UserRegister)
 			public.POST("/login", controller.UserLogin)
+			public.POST("/code", controller.SendVerificationCode)
 		}
 
 		protected := api.Group("")

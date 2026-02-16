@@ -24,7 +24,6 @@ func GenerateToken(email string) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	secretKey := []byte(config.Cfg.JWT.SecretKey)
 	return token.SignedString(secretKey)
@@ -34,27 +33,25 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			slog.Info("Authorization header required")
+			slog.Error("Authorization header required")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			slog.Info("Invalid authorization format")
+			slog.Error("Invalid authorization format")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		tokenString := parts[1]
 		claims := &Claims{}
-
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Cfg.JWT.SecretKey), nil
 		})
-
 		if err != nil || !token.Valid {
-			slog.Info("Invalid token",
+			slog.Error("Invalid token",
 				"user_email", claims.Email,
 				"err", err,
 			)

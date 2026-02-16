@@ -59,7 +59,7 @@ func UpdateSystemMessageAsRead(c *gin.Context) {
 
 	// 更新未读计数
 	ctx := context.Background()
-	key := fmt.Sprintf(constants.KeyUserUnreadMsgCount, message.UserEmail)
+	key := fmt.Sprintf(constants.KeyUnreadMsgCount, message.UserEmail)
 	dao.RedisClient.Decr(ctx, key)
 
 	c.JSON(http.StatusOK, response.Response{})
@@ -80,7 +80,7 @@ func DeleteSystemMessage(c *gin.Context) {
 	// 若删除的消息未读，需要减去计数
 	if !message.IsRead {
 		ctx := context.Background()
-		key := fmt.Sprintf(constants.KeyUserUnreadMsgCount, message.UserEmail)
+		key := fmt.Sprintf(constants.KeyUnreadMsgCount, message.UserEmail)
 		dao.RedisClient.Decr(ctx, key)
 	}
 
@@ -90,7 +90,7 @@ func DeleteSystemMessage(c *gin.Context) {
 func GetUnreadSystemMessageCount(c *gin.Context) {
 	ctx := context.Background()
 	email := c.GetString("email")
-	key := fmt.Sprintf(constants.KeyUserUnreadMsgCount, email)
+	key := fmt.Sprintf(constants.KeyUnreadMsgCount, email)
 
 	count, err := dao.RedisClient.Get(ctx, key).Int64()
 	if err != nil && err != redis.Nil {

@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	"diabetes-agent-server/config"
-	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/model"
 	"diabetes-agent-server/request"
@@ -65,7 +64,7 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 	llm, err := openai.New(
 		openai.WithModel(req.AgentConfig.Model),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(constants.BaseURL),
+		openai.WithBaseURL(config.Cfg.Model.BaseURL),
 		openai.WithHTTPClient(httpClient),
 	)
 	if err != nil {

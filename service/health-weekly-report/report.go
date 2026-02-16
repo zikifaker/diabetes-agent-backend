@@ -169,7 +169,7 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 	}
 
 	// 更新未读消息计数
-	key := fmt.Sprintf(constants.KeyUserUnreadMsgCount, email)
+	key := fmt.Sprintf(constants.KeyUnreadMsgCount, email)
 	dao.RedisClient.Incr(ctx, key)
 
 	return nil
@@ -223,7 +223,7 @@ func generateHealthAnalysis(ctx context.Context, userHealthData *UserHealthData)
 	llm, err := openai.New(
 		openai.WithModel(modelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(constants.BaseURL),
+		openai.WithBaseURL(config.Cfg.Model.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

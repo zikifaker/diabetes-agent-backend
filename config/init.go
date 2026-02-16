@@ -45,7 +45,8 @@ type Config struct {
 		NameServer []string `yaml:"name_server"`
 	} `yaml:"mq"`
 	Model struct {
-		APIKey string `yaml:"api_key"`
+		BaseURL string `yaml:"base_url"`
+		APIKey  string `yaml:"api_key"`
 	} `yaml:"model"`
 	Milvus struct {
 		Endpoint string `yaml:"endpoint"`
@@ -53,6 +54,12 @@ type Config struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
 	} `yaml:"milvus"`
+	Email struct {
+		Host      string `yaml:"host"`
+		Port      string `yaml:"port"`
+		Password  string `yaml:"password"`
+		FromEmail string `yaml:"from_email"`
+	} `yaml:"email"`
 }
 
 type DBConfig struct {

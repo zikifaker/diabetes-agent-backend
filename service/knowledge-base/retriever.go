@@ -3,7 +3,6 @@ package knowledgebase
 import (
 	"context"
 	"diabetes-agent-server/config"
-	"diabetes-agent-server/constants"
 	"diabetes-agent-server/dao"
 	"diabetes-agent-server/utils"
 	_ "embed"
@@ -43,7 +42,7 @@ func init() {
 		openai.WithModel(llmName),
 		openai.WithEmbeddingModel(embeddingModelName),
 		openai.WithToken(config.Cfg.Model.APIKey),
-		openai.WithBaseURL(constants.BaseURL),
+		openai.WithBaseURL(config.Cfg.Model.BaseURL),
 		openai.WithHTTPClient(utils.GlobalHTTPClient),
 	)
 	if err != nil {

@@ -90,3 +90,28 @@ func UserLogin(c *gin.Context) {
 		},
 	})
 }
+
+// SendVerificationCode 发送邮箱验证码
+func SendVerificationCode(c *gin.Context) {
+	var req request.SendEmailCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		slog.Error(ErrParseRequest.Error(), "err", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Msg: ErrParseRequest.Error(),
+		})
+		return
+	}
+
+	if err := auth.SendVerificationCode(req); err != nil {
+		slog.Error(ErrSendVerificationCode.Error(),
+			"email", req.Email,
+			"err", err,
+		)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Msg: ErrSendVerificationCode.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{})
+}

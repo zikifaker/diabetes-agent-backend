@@ -117,9 +117,9 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 		return fmt.Errorf("failed to generate health analysis: %v", err)
 	}
 
-	formattedStart := start.Format("2006/01/02")
-	formattedEnd := end.Format("2006/01/02")
-	fileName := fmt.Sprintf("%s-%s.html", formattedStart, formattedEnd)
+	formattedStart := start.Format("2006-01-02")
+	formattedEnd := end.Format("2006-01-02")
+	fileName := fmt.Sprintf("%s_%s.html", formattedStart, formattedEnd)
 
 	htmlContent, err := renderReport(ctx, &ReportData{
 		ReportPeriod:        formattedStart + " 至 " + formattedEnd,

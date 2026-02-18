@@ -43,8 +43,9 @@ var (
 
 	ErrGetHealthWeeklyReports = errors.New("failed to get health weekly reports")
 
-	ErrGetSystemMessages           = errors.New("failed to get system messages")
-	ErrUpdateSystemMessageAsRead   = errors.New("failed to update system message as read")
-	ErrDeleteSystemMessage         = errors.New("failed to delete system message")
-	ErrGetUnreadSystemMessageCount = errors.New("failed to get unread system message count")
+	ErrGetSystemMessages            = errors.New("failed to get system messages")
+	ErrUpdateSystemMessageAsRead    = errors.New("failed to update system message as read")
+	ErrDeleteSystemMessage          = errors.New("failed to delete system message")
+	ErrGetUnreadSystemMessageCount  = errors.New("failed to get unread system message count")
+	ErrUpdateUserEnableNotification = errors.New("failed to update user enable notification")
 )

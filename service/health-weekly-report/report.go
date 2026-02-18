@@ -9,12 +9,14 @@ import (
 	"diabetes-agent-server/model"
 	"diabetes-agent-server/request"
 	"diabetes-agent-server/response"
+	"diabetes-agent-server/service/email"
 	ossauth "diabetes-agent-server/service/oss-auth"
 	"diabetes-agent-server/utils"
 	_ "embed"
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/smtp"
 	"strings"
 	"text/template"
 	"time"
@@ -33,8 +35,11 @@ var (
 	//go:embed prompts/report.txt
 	reportPrompt string
 
-	//go:embed template.html
+	//go:embed report.html
 	reportTemplate string
+
+	//go:embed notification.html
+	notificationTemplate string
 )
 
 type UserHealthData struct {
@@ -56,7 +61,7 @@ type HealthAnalysis struct {
 	Conclusion string `json:"conclusion"`
 }
 
-// ReportData 用于填充健康周报模板
+// ReportData 健康周报模板数据
 type ReportData struct {
 	ReportPeriod        string
 	BloodGlucoseRecords []response.GetBloodGlucoseRecordsResponse
@@ -64,6 +69,13 @@ type ReportData struct {
 	ExerciseRecords     []response.GetExerciseRecordsResponse
 	ExerciseStats       *dao.ExerciseStats
 	HealthAnalysis      *HealthAnalysis
+}
+
+// NotificationData 健康周报通知数据
+type NotificationData struct {
+	ReportPeriod string
+	UserEmail    string
+	ReportURL    string
 }
 
 func SetupHealthWeeklyReportScheduler() {
@@ -158,6 +170,7 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 		return fmt.Errorf("failed to upload health weekly report: %v", err)
 	}
 
+	// 存储系统消息
 	msg := model.SystemMessage{
 		UserEmail: email,
 		Title:     "健康周报",
@@ -165,12 +178,21 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 		IsRead:    false,
 	}
 	if err := dao.DB.Create(&msg).Error; err != nil {
-		return fmt.Errorf("Failed to save system message: %v", err)
+		slog.Error("Failed to save system message", "err", err)
 	}
 
 	// 更新未读消息计数
 	key := fmt.Sprintf(constants.KeyUnreadMsgCount, email)
 	dao.RedisClient.Incr(ctx, key)
+
+	// 推送通知邮件
+	if err := sendNotification(email, NotificationData{
+		ReportPeriod: formattedStart + " 至 " + formattedEnd,
+		UserEmail:    email,
+		ReportURL:    "http://localhost:5173/health-weekly-report",
+	}); err != nil {
+		slog.Error("failed to send notification", "err", err)
+	}
 
 	return nil
 }
@@ -293,4 +315,68 @@ func uploadReport(ctx context.Context, content string, objectName string) error 
 		return fmt.Errorf("failed to upload health weekly report: %v", err)
 	}
 	return nil
+}
+
+func sendNotification(toEmail string, data NotificationData) error {
+	user, err := dao.GetUserByEmail(toEmail)
+	if err != nil {
+		slog.Error("failed to get user by email",
+			"email", toEmail,
+			"err", err,
+		)
+		return nil
+	}
+
+	// 若用户未开启健康周报通知，直接返回
+	if !user.EnableWeeklyReportNotification {
+		return nil
+	}
+
+	cfg := config.Cfg.Email
+	message, err := buildNotificationMessage(cfg.FromEmail, toEmail, data)
+	if err != nil {
+		return err
+	}
+
+	auth := smtp.PlainAuth(
+		"",
+		cfg.FromEmail,
+		cfg.Password,
+		cfg.Host,
+	)
+	return email.Send(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		auth,
+		cfg.FromEmail,
+		[]string{toEmail},
+		[]byte(message),
+	)
+}
+
+func buildNotificationMessage(fromEmail string, toEmail string, data NotificationData) (string, error) {
+	var content strings.Builder
+
+	header := make(map[string]string)
+	header["From"] = fmt.Sprintf("%s <%s>", "Diabetes Agent", fromEmail)
+	header["To"] = toEmail
+	header["Subject"] = "您的健康周报 - 已生成"
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = "text/html; charset=UTF-8"
+	for k, v := range header {
+		content.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+	}
+
+	tmpl, err := template.New("notification_message").Parse(notificationTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to execute template: %v", err)
+	}
+
+	content.WriteString("\r\n")
+	content.WriteString(buf.String())
+
+	return content.String(), nil
 }

@@ -25,3 +25,9 @@ func GetAllUsers() ([]model.User, error) {
 	err := DB.Find(&users).Error
 	return users, err
 }
+
+func UpdateEnableNotification(email string, enable bool) error {
+	return DB.Model(&model.User{}).
+		Where("email = ?", email).
+		Update("enable_weekly_report_notification", enable).Error
+}

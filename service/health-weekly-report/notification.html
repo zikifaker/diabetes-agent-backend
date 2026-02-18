@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>健康周报已生成</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>您的健康周报已生成</h2>
+        </div>
+        <div class="content">
+            <p>尊敬的 {{.UserEmail}}：</p>
+            <p>您的最新健康周报（{{.ReportPeriod}}）已经生成，请点击下方按钮前往网站查看：</p>
+            <p style="text-align: center;">
+                <a href="{{.ReportURL}}" class="button">查看周报</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

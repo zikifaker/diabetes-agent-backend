@@ -15,7 +15,8 @@ func UploadKnowledgeMetadata(metadata model.KnowledgeMetadata) error {
 		return fmt.Errorf("failed to get knowledge metadata: %v", err)
 	}
 	if exists != nil {
-		return fmt.Errorf("file already exists")
+		slog.Warn("file already exists")
+		return nil
 	}
 
 	if err := dao.DB.Create(&metadata).Error; err != nil {

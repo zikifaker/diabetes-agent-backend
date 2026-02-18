@@ -67,7 +67,6 @@ func UpdateSystemMessageAsRead(c *gin.Context) {
 
 func DeleteSystemMessage(c *gin.Context) {
 	id := c.Param("id")
-
 	message, err := dao.DeleteSystemMessage(id)
 	if err != nil {
 		slog.Error(ErrDeleteSystemMessage.Error(), "err", err)

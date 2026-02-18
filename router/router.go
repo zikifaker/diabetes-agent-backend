@@ -53,6 +53,7 @@ func Register() *gin.Engine {
 			protected.DELETE("/exercise/record/:id", controller.DeleteExerciseRecord)
 
 			protected.GET("/health-weekly-reports", controller.GetHealthWeeklyReports)
+			protected.PUT("/health-weekly-reports/notification", controller.UpdateUserEnableNotification)
 
 			protected.GET("/system-messages", controller.GetSystemMessages)
 			protected.PUT("/system-message/:id/read", controller.UpdateSystemMessageAsRead)

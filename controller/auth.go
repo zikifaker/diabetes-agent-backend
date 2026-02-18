@@ -41,9 +41,10 @@ func UserRegister(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, response.Response{
 		Data: response.UserAuthResponse{
-			Email:  user.Email,
-			Avatar: user.Avatar,
-			Token:  token,
+			Email:                          user.Email,
+			Avatar:                         user.Avatar,
+			EnableWeeklyReportNotification: user.EnableWeeklyReportNotification,
+			Token:                          token,
 		},
 	})
 }
@@ -84,9 +85,10 @@ func UserLogin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.Response{
 		Data: response.UserAuthResponse{
-			Email:  user.Email,
-			Avatar: user.Avatar,
-			Token:  token,
+			Email:                          user.Email,
+			Avatar:                         user.Avatar,
+			EnableWeeklyReportNotification: user.EnableWeeklyReportNotification,
+			Token:                          token,
 		},
 	})
 }

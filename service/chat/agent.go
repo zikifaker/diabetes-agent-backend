@@ -116,6 +116,15 @@ func NewAgent(req request.ChatRequest, c *gin.Context) (*Agent, error) {
 }
 
 func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Context) error {
+	// 检查用户输入是否包含高风险内容
+	if err := filterQuery(req.Query); err != nil {
+		if errors.Is(err, ErrQueryContainsHighRiskContent) {
+			utils.SendSSEMessage(c, utils.EventFinalAnswer, err.Error())
+			return err
+		}
+		slog.Error("Failed to filter query", "err", err)
+	}
+
 	// 引入上传文件和知识库检索结果
 	if len(req.UploadedFiles) > 0 || req.EnableKnowledgeBaseRetrieval {
 		req.Query = a.buildUserContext(ctx, req, c)
@@ -131,10 +140,8 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 		// 若抛出 ErrUnableToParseOutput，从错误信息中提取回答后推送，持久化问答对
 		case errors.Is(err, agents.ErrUnableToParseOutput):
 			slog.Warn("Failed to parse agent output, missing prefix 'AI:'")
-
 			answer := strings.TrimPrefix(err.Error(), agents.ErrUnableToParseOutput.Error()+":")
 			utils.SendSSEMessage(c, utils.EventFinalAnswer, answer)
-
 			if err := a.saveConversation(saveCtx, req.Query, answer); err != nil {
 				slog.Error("Failed to save agent final answer", "err", err)
 			}
@@ -142,7 +149,6 @@ func (a *Agent) Call(ctx context.Context, req request.ChatRequest, c *gin.Contex
 		// 若抛出 context.Canceled，持久化问答对
 		case errors.Is(err, context.Canceled):
 			slog.Warn("Client canceled")
-
 			answer := a.SSEHandler.FinalAnswer.String()
 			if err := a.saveConversation(saveCtx, req.Query, answer); err != nil {
 				slog.Error("Failed to save agent final answer", "err", err)

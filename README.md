@@ -15,11 +15,12 @@
     - [x] 推送工具调用结果
     - [x] 推送最终答案
     - [x] 上下文压缩(LLM 生成摘要)
-  - [x] Agent 配置(最大迭代次数/MCP 工具)
   - [x] 选择模型
+  - [x] Agent 配置(最大迭代次数/MCP 工具)
   - [x] 上传聊天文件(PNG/JPG/JEPG/GIF/WEBP/Word/PDF/Excel/txt/Markdown)
-  - [x] 向量检索知识库
+  - [x] 知识库检索
   - [x] 语音输入
+  - [x] User Query 敏感内容检测
 - [x] Agent 会话
   - [x] 创建会话
   - [x] 获取会话消息

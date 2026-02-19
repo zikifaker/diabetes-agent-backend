@@ -17,6 +17,10 @@ type Config struct {
 		} `yaml:"cors"`
 		LogLevel string `yaml:"log_level"`
 	}
+	Client struct {
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	}
 	DB struct {
 		MySQL DBConfig `yaml:"mysql"`
 	} `yaml:"db"`

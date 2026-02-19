@@ -4,6 +4,10 @@ server:
     allowed_origins: []
   log_level: 
 
+client:
+  host: 
+  port: 
+
 db:
   mysql:
     host: 

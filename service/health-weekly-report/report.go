@@ -189,7 +189,7 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 	if err := sendNotification(email, NotificationData{
 		ReportPeriod: formattedStart + " 至 " + formattedEnd,
 		UserEmail:    email,
-		ReportURL:    "http://localhost:5173/health-weekly-report",
+		ReportURL:    fmt.Sprintf("http://%s:%s/health-weekly-report", config.Cfg.Client.Host, config.Cfg.Client.Port),
 	}); err != nil {
 		slog.Error("failed to send notification", "err", err)
 	}

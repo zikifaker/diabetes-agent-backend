@@ -2,7 +2,7 @@ module diabetes-agent-server
 
 go 1.24.6
 
-toolchain go1.24.8
+toolchain go1.24.10
 
 require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.14

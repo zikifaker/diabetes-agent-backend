@@ -1,12 +1,13 @@
 <div align="center">
   <h1>Diabetes Agent</h1>
   <div>
-    <p>基于 Gin 开发的糖尿病智能体平台服务端</p>
+    <p>基于 Gin 开发的糖尿病智能体平台</p>
+    <img src='example.png'>
   </div>
 </div>
 
 ## 介绍
-毕设作品，主要面向患者侧，包括 Agent 对话、知识库、血糖记录、运动记录、健康周报等核心功能。本仓库为服务端实现，另有[客户端](https://github.com/zikifaker/diabetes-agent-client)和[MCP服务](https://github.com/zikifaker/diabetes-agent-mcp-server)。
+毕设作品，主要面向患者侧，包括 Agent 对话、知识库、血糖记录、运动记录、健康周报等核心功能。本仓库为服务端，另有[客户端](https://github.com/zikifaker/diabetes-agent-client)和[MCP服务](https://github.com/zikifaker/diabetes-agent-mcp-server)。
 
 ## feat
 - [x] Agent 对话
@@ -15,10 +16,9 @@
     - [x] 推送工具调用结果
     - [x] 推送最终答案
     - [x] 上下文压缩(LLM 生成摘要)
-  - [x] 选择模型
-  - [x] Agent 配置(最大迭代次数/MCP 工具)
+  - [x] Agent 配置(模型/最大迭代次数/MCP 工具)
   - [x] 上传聊天文件(PNG/JPG/JEPG/GIF/WEBP/Word/PDF/Excel/txt/Markdown)
-  - [x] 知识库检索
+  - [x] 知识库向量检索
   - [x] 语音输入
   - [x] User Query 敏感内容检测
 - [x] Agent 会话
@@ -28,7 +28,7 @@
   - [x] 更新会话标题
 - [x] 知识库
   - [x] 上传文件(PDF/txt/Markdown)
-  - [x] ETL(下载 OSS 文件->语法结构/固定长度切分->向量化存储)
+  - [x] ETL(下载 OSS 文件->按语法结构/固定长度切分->向量化存储)
   - [x] 删除文件
   - [x] 下载文件
   - [x] 查询文件(按文件名)
@@ -50,7 +50,7 @@
   - [x] 分页查询
   - [x] 标记已读
   - [x] 删除
-  - [x] 查询未读消息数量
+  - [x] 未读消息计数
 - [x] 登录
   - [x] 注册
   - [x] 密码登录

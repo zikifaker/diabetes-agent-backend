@@ -139,7 +139,7 @@ func sendRunTaskCmd(wsConnection *WSConnection) (string, error) {
 func waitForTaskStarted(taskStarted chan bool, taskID string) error {
 	select {
 	case <-taskStarted:
-		slog.Info("start task successfully", "taskID", taskID)
+		slog.Info("start task successfully", "task_id", taskID)
 	case <-time.After(10 * time.Second):
 		return fmt.Errorf("timeout waiting for task-started")
 	}
@@ -190,7 +190,7 @@ func sendFinishTaskCmd(wsConnection *WSConnection, taskID string) error {
 func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, result *strings.Builder) bool {
 	switch event.Header.Event {
 	case "task-started":
-		slog.Info("receive task-started event", "taskID", event.Header.TaskID)
+		slog.Info("receive task-started event", "task_id", event.Header.TaskID)
 		taskStarted <- true
 	case "result-generated":
 		// 若语音识别出完整的句子，将结果写入 result
@@ -198,7 +198,7 @@ func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, res
 			result.WriteString(event.Payload.Output.Sentence.Text)
 		}
 	case "task-finished":
-		slog.Info("task finished", "taskID", event.Header.TaskID)
+		slog.Info("task finished", "task_id", event.Header.TaskID)
 		taskDone <- true
 		return true
 	case "task-failed":
@@ -214,11 +214,11 @@ func handleEvent(event Event, taskStarted chan<- bool, taskDone chan<- bool, res
 func handleTaskFailed(event Event) {
 	if event.Header.ErrorMessage != "" {
 		slog.Error("task failed",
-			"taskID", event.Header.TaskID,
+			"task_id", event.Header.TaskID,
 			"err", event.Header.ErrorMessage,
 		)
 	} else {
-		slog.Error("task failed due to unknown reason", "taskID", event.Header.TaskID)
+		slog.Error("task failed due to unknown reason", "task_id", event.Header.TaskID)
 	}
 }
 

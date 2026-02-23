@@ -5,8 +5,7 @@ server:
   log_level: 
 
 client:
-  host: 
-  port: 
+  base_url: 
 
 db:
   mysql:

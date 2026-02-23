@@ -18,8 +18,7 @@ type Config struct {
 		LogLevel string `yaml:"log_level"`
 	}
 	Client struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		BaseURL string `yaml:"base_url"`
 	}
 	DB struct {
 		MySQL DBConfig `yaml:"mysql"`

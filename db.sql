@@ -32,7 +32,7 @@ CREATE TABLE `blood_glucose_record`  (
   `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_email_measured_at`(`user_email` ASC, `measured_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 27 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for chat_intermediate_steps
@@ -47,7 +47,7 @@ CREATE TABLE `chat_intermediate_steps`  (
   `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_message`(`message_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 71 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for chat_message
@@ -63,7 +63,7 @@ CREATE TABLE `chat_message`  (
   `summary` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_session_created`(`session_id` ASC, `created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1200 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for chat_session
@@ -78,7 +78,7 @@ CREATE TABLE `chat_session`  (
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_email`(`user_email` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 256 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for chat_tool_call_results
@@ -93,7 +93,7 @@ CREATE TABLE `chat_tool_call_results`  (
   `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_message`(`message_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for chat_uploaded_file
@@ -108,7 +108,7 @@ CREATE TABLE `chat_uploaded_file`  (
   `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_message`(`message_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for exercise_record
@@ -130,7 +130,7 @@ CREATE TABLE `exercise_record`  (
   `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_email_start_at`(`user_email` ASC, `start_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for health_profile
@@ -156,7 +156,7 @@ CREATE TABLE `health_profile`  (
   `allergies` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '药物/食物过敏史',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_email`(`user_email` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for health_weekly_report
@@ -173,7 +173,7 @@ CREATE TABLE `health_weekly_report`  (
   `object_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_email_start_at`(`user_email` ASC, `start_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for knowledge_metadata
@@ -192,7 +192,7 @@ CREATE TABLE `knowledge_metadata`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_email_created`(`user_email` ASC, `created_at` ASC) USING BTREE,
   FULLTEXT INDEX `idx_fulltext_file_name`(`file_name`) WITH PARSER `ngram`
-) ENGINE = InnoDB AUTO_INCREMENT = 88 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for system_message
@@ -208,7 +208,7 @@ CREATE TABLE `system_message`  (
   `is_read` tinyint(1) NOT NULL DEFAULT 0 COMMENT '消息已读状态',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_email_created`(`user_email` ASC, `created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for user
@@ -224,6 +224,6 @@ CREATE TABLE `user`  (
   `enable_weekly_report_notification` tinyint NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_email`(`email` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

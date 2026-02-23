@@ -74,7 +74,6 @@ type ReportData struct {
 // NotificationData 健康周报通知数据
 type NotificationData struct {
 	ReportPeriod string
-	UserEmail    string
 	ReportURL    string
 }
 
@@ -100,7 +99,6 @@ func GenerateWeeklyReports() {
 		return
 	}
 
-	// 计算时间范围: 上周一00:00:00 - 上周日23:59:59.999
 	now := time.Now().UTC()
 	thisMonday := now.AddDate(0, 0, -int(now.Weekday())+1).Truncate(24 * time.Hour)
 	end := thisMonday.Add(-time.Nanosecond)
@@ -188,8 +186,7 @@ func generateWeeklyReport(ctx context.Context, email string, start, end time.Tim
 	// 推送通知邮件
 	if err := sendNotification(email, NotificationData{
 		ReportPeriod: formattedStart + " 至 " + formattedEnd,
-		UserEmail:    email,
-		ReportURL:    fmt.Sprintf("http://%s:%s/health-weekly-report", config.Cfg.Client.Host, config.Cfg.Client.Port),
+		ReportURL:    fmt.Sprintf("%s/health-weekly-report", config.Cfg.Client.BaseURL),
 	}); err != nil {
 		slog.Error("failed to send notification", "err", err)
 	}
@@ -358,7 +355,7 @@ func buildNotificationMessage(fromEmail string, toEmail string, data Notificatio
 	header := make(map[string]string)
 	header["From"] = fmt.Sprintf("%s <%s>", "Diabetes Agent", fromEmail)
 	header["To"] = toEmail
-	header["Subject"] = "您的健康周报 - 已生成"
+	header["Subject"] = "您的健康周报已生成"
 	header["MIME-Version"] = "1.0"
 	header["Content-Type"] = "text/html; charset=UTF-8"
 	for k, v := range header {
